@@ -1,0 +1,5 @@
+int read_snapshot(char *, int, float, float, int, int, int, int,float **, float **, float **, float **,float**,float**,long *, float *, float *, float *, long ***,long **);
+//int read_snapshot(char *infile_name, int format, float lunit, float munit, int swp, int glong, int gdouble, int NCells,  float **out_x, float **out_y, float **out_z, float **out_vx, float **out_vy, float **out_vz,long *out_Np, float *out_mp, float *out_L, float *out_omega_0, long ***ListOfPart,long **NPartPerCell){
+int read_snapshot_serial(char *, int , float , float , int , int, int ,  int , float **, float **, float **, float **, float **, float **,long *, float *, float *, float*,long ***,long **);
+//read_snapshot_serial(char *infile_name, int format, float lunit, float munit, int swp, int glong, int gdouble, int NCells, float **out_x, float **out_y, float **out_z, float **o
+//ut_vx, float **out_vy, float **out_vz,long *out_Np, float *out_mp, float *out_L, float *out_omega_0,long ***ListOfPart,long **NPartPerCell);

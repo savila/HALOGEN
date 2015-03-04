@@ -1,0 +1,66 @@
+#******** HALOGEN FITTING input file *******#
+
+
+######### GENERAL INPUTS ########
+
+#Full path to the (2LPT) Snapshot
+Snapshot /bigdata/savila/2LPT/2LPTnonlocal_public/outputs/j1Gpc/2LPT/j1Gpc.z0.000.N0
+	
+# Full path to the NBODY halos
+NbodyFile  /home/savila/HALOGEN/Simulations/NB/j_L1000_N512/AHF_z0.0_main_halos
+
+#Gadget format (1 or 2) of Snapshot
+GadgetFormat 1
+
+#Full path to the tabulated cumulative density function n(>M). Format: M[M_sun/h] n[(h/Mpc)^3]
+MassFunctionFile	input/HMF_JUB-Behroozi_z0.0.dat
+
+#Full Path to the output
+OutputDir	fit_output/j1Gp_N512_z0.00_WN_l4
+
+#Number of Cells per side of the grid used
+NCellsLin	250
+
+#Total Number of re-calculations (excluding change of mass-alpha bin)
+recalc_frac     1.0
+
+# NUMBER OF THREADS TO USE
+nthreads      100
+
+## CORRELATION PARAMETERS
+nr              6
+minr            15.0
+maxr            47.0
+
+# Min and Max number of halos per bin
+Dmin            5.0e-6
+Dmax            5.0e-5
+
+# Parameters for how to fit
+alpha_ratio_1    0.4
+alpha_ratio      0.65
+best_alpha       6
+num_alpha        10
+ntrials          10
+
+beta		0.0
+
+#Reference density: choose "crit" for rho_critical or "matter" for rho_matter
+rho_ref		crit
+
+#Density at which the edge of the halo is defined in units of rho_ref
+Overdensity	200
+
+#Minimum halo mass in units of M_sun/h
+#Mmin		8.75e12
+Mmin		2.0e-4
+
+#Random seed. If negative, synchronized with time.
+#Seed -1
+
+######### Specific Gadget formats ########
+GadL_Unit 	1.0
+GadM_Unit	1.0e10
+GadSwap		0
+GadDouble	0
+GadLong		0

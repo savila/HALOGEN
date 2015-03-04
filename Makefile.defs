@@ -1,0 +1,52 @@
+###############################################################
+# SYSTEM-SPECIFIC COMPILATION OPTIONS
+###############################################################
+GSL_INCL  =  -I$(GSL_DIR)/include
+GSL_LIBS  = -L$(GSL_DIR)/lib
+FFTW_LIBS = $(FFTW_POST_LINK_OPTS)
+FFTW_INCL = $(FFTW_INCLUDE_OPTS)
+
+CCMPI     =  cc
+CC        =  cc
+MPICHLIB  =  #-L/home/dmonge/mpi/lib
+
+OPTIMIZE  =  -O3 -Wall    # optimization and warning flags
+###############################################################
+
+# //******   HALOGEN DEFINE OPTIONS ************** //
+
+#Choose one of the three Exclusion criteria
+#DEFS           +=      -DNO_EXCLUSION			#Haloes can overlap in any way.
+DEFS            +=      -DHALF_EXCLUSION		#Haloes are allowed to overlap. But the center of the small halo cannot be inside the big halo.
+#DEFS            +=      -DFULL_EXCLUSION		#Haloes are not allowed to overlap.
+
+
+#How to define number density
+DEFS		+=	-DNDENS				#is set,	input parameter Mmin defines the halo number density in [Mpc/h]^{-3}.
+							#if unset, 	input parameter Mmin defines a mass threshold for the haloes generated
+
+#Verbosity
+DEFS           +=      -DVERB				#Add some comments to cross-check.
+#DEFS           +=      -DDEBUG				#Add many comments (for each halo). It slows down the proccess by a factor of 2 aprox.
+#DEFS           +=      -DULTRADEBUG			#Add comments in many specific parts. It slows down the process significantly. Use with fewer halos.
+
+
+#DEFS		+=	-DRANKED			#At each time the most masive halo to place is set in the most massive cell available
+
+#DEFS		+=	-DNO_PROB_PARALLEL		#Probabilities computed in serial
+
+
+#*** Flags only for "fit" ***
+#DEFS		+=	-DREL_CHI2			#chi2=((NB-Hlgn)/NB))^2
+#DEFS        	+=  	-DALLOUT                        #write out a heap more in fitting
+#DEFS		+=	-DMASS_CUTS_FIT			#Use mass cuts instead of number cuts for the fit 
+DEFS		+=	-DNO_PROB_PARALEL		#Fit parallel
+#DEFS		+=	-DNO_PAR_FIT		      	#Fit serial
+
+
+
+# //******   OPTIONS FOR 2LPT ************** //
+
+2LPTOPT   +=  -DNO64BITID         # switch this on if you want normal 32-bit IDs
+#2LPTOPT  +=  -DCORRECT_CIC       # only switch this on if particles start from a glass (as opposed to grid)
+#2LPTOPT  +=  -DONLY_ZA 	      # swith this on if you want ZA initial conditions (2LPT otherwise)
