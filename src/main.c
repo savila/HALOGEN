@@ -1,3 +1,15 @@
+/*********************************************************************************** 
+ HALOGEN-2LPT
+************************************************************************************ 
+This code is a modification of 2LPTic (http://arxiv.org/abs/astro-ph/9711187)
+in which we incorporated HALOGEN (http://arxiv.org/abs/1412.5228)
+The original code 2LPTic was developped by 
+Roman Scoccimarro and Sebastian Pueblas (http://cosmo.nyu.edu/roman/2LPT/)
+HALOGEN has been developped by Santiago Avila and Steven Murray 
+(https://github.com/savila/HALOGEN).
+************************************************************************************ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>

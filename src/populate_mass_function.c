@@ -1,3 +1,14 @@
+
+/*********************************************************************************** 
+ POPULATE_MASS_FUNCTION
+************************************************************************************ 
+This file is part of HALOGEN (http://arxiv.org/abs/1412.5228).
+HALOGEN has been developped by Santiago Avila and Steven Murray 
+(https://github.com/savila/HALOGEN).
+************************************************************************************ */
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

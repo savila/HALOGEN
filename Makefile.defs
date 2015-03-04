@@ -8,7 +8,7 @@ FFTW_INCL = $(FFTW_INCLUDE_OPTS)
 
 CCMPI     =  cc
 CC        =  cc
-MPICHLIB  =  #-L/home/dmonge/mpi/lib
+MPICHLIB  = #path 
 
 OPTIMIZE  =  -O3 -Wall    # optimization and warning flags
 ###############################################################
@@ -23,7 +23,7 @@ DEFS            +=      -DHALF_EXCLUSION		#Haloes are allowed to overlap. But th
 
 #How to define number density
 DEFS		+=	-DNDENS				#is set,	input parameter Mmin defines the halo number density in [Mpc/h]^{-3}.
-							#if unset, 	input parameter Mmin defines a mass threshold for the haloes generated
+							#if unset, 	input parameter Mmin defines a mass threshold for the haloes generated in M_{sun}/h
 
 #Verbosity
 DEFS           +=      -DVERB				#Add some comments to cross-check.

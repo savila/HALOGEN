@@ -1,3 +1,14 @@
+
+/*********************************************************************************** 
+This code is a part of 2LPTic (http://arxiv.org/abs/astro-ph/9711187)
+adapted to HALOGEN (http://arxiv.org/abs/1412.5228)
+The original code 2LPTic was developped by 
+Roman Scoccimarro and Sebastian Pueblas (http://cosmo.nyu.edu/roman/2LPT/)
+************************************************************************************ */
+
+
+
+
 #include <math.h>
 #include "allvars.h"
 #include "proto.h"
