@@ -14,7 +14,7 @@ Nsample       512          % sets the maximum k that the code uses,
 
 Box             1000.0    % Periodic box size of simulation
 
-GlassFile        j1Gpc/data/glass1_le 
+GlassFile        examples/FULL_HALOGEN/data/glass1_le 
 GlassTileFac   512 
 
 Omega            0.270000       % Total matter density  (at z=0)
@@ -42,7 +42,7 @@ WhichSpectrum    2         % "1" selects Eisenstein & Hu spectrum,
                            % otherwise, Efstathiou parametrization is used
 
                   
-FileWithInputSpectrum j1Gpc/data/j1Gpc_matterpower.dat
+FileWithInputSpectrum examples/FULL_HALOGEN/data/GOLIAT_powerspectrum.dat
                                                                          % filename of tabulated input
                                                                          % expecting logk logPk 
                                                                        

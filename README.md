@@ -58,7 +58,7 @@ For the 2LPT input:
 
 * glass file: A glass file
 
-* transfer file: A table of k,T(k) for the desired cosmology. This may be
+* Power Spectrum file: A table of logk,logP(k) for the desired cosmology. This may be
   produced in any fashion, but is simple with CAMB, CLASS, or at hmf.icrar.org.
 
 If the standalone ``halogen`` program is used, type ``./halogen

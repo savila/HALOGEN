@@ -3,18 +3,30 @@
 
 ######### GENERAL INPUTS ########
 
+#Full path to the (2LPT) Snapshot
+Snapshot /bigdata/savila/2LPT/2LPTnonlocal_public/outputs/j1Gpc/2LPT/j1Gpc.z0.000.N0
+	
+#Gadget format (1 or 2) of Snapshot
+GadgetFormat 1
 
 #Full path to the tabulated cumulative density function n(>M). Format: M[M_sun/h] n[(h/Mpc)^3]
-MassFunctionFile	data/HMF_Behroozi_z0.0.dat
+MassFunctionFile	input/HMF_JUB-Behroozi_z0.0.dat
 
 #Full Path to the output
-OutputFile	output/halos.out
+OutputFile	output/j1Gp_z0.00_WN_n2e-4_l4_run0.halos
 
 #Number of Cells per side of the grid used (lcell=Lbox/NCellsLin)
 NCellsLin	250
 
 #Full path to the tabulated alpha(Mass) relation. Format: alpha M[M_sun/h]
-alphaFile       data/M-alpha-l4.txt
+alphaFile       ../v0.8.1/fit_output/j1Gp_N512_z0.00_WN_l4/M-alpha.txt
+
+#Beta (-1.0 for beta=alpha)
+Beta		0.0
+
+#Velocity correction factor 
+vel_fact	0.73970156142110632
+#vel_fact	0.76481288683187243
 
 #Relative error allowed in CumulativeProb
 recalc_frac	1.0
@@ -28,9 +40,16 @@ rho_ref		crit
 #Density at which the edge of the halo is defined in units of rho_ref
 Overdensity	200
 
-#Minimum halo mass in units of M_sun/h     or (#ifdef NDENS) halo number density in [h/Mpc]^3
+#Minimum halo mass in units of M_sun/h
 #Mmin		8.75e12
 Mmin		2.0e-4
 
 #Random seed. If negative, synchronized with time.
-Seed		1422358203
+Seed -1
+
+######### Specific Gadget formats ########
+GadL_Unit 	1.0
+GadM_Unit	1.0e10
+GadSwap		0
+GadDouble	0
+GadLong		0
