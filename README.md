@@ -84,7 +84,11 @@ Acknowledgments
 If you find this code helpful in your research, please cite Avila, S. et
 al. 2014 -- http://arxiv.org/abs/1412.5228.
 
+Note that HALOGEN makes use of the pre-existing codes:
+ - 2LPTic by Sebastian Pueblas and Roman Scoccimarro (http://arxiv.org/abs/astro-ph/9711187, http://cosmo.nyu.edu/roman/2LPT/)
+ - CUTE  by David Alonso (http://arxiv.org/abs/1210.1833)
+
 Authors
 -------
-Santiago Avila Perez: santiago.avila@uam.com
+Santiago Avila Perez: santiago.avila@uam.es
 Steven Murray: steven.murray@uwa.edu.au 
