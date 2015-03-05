@@ -34,26 +34,11 @@ $(2LPT_OBJ): %.o : %.c $(2LPT_INCL)
 halogen:	halogen.c $(HLGN_OBJ) $(HLGN_OBJ:o=h)
 	$(CC) $(CFLAGS) $(DEFS) halogen.c $(HLGN_OBJ) $(OTHER_LIB)
 
-<<<<<<< HEAD
-clean:
-	rm -f $(2LPT_OBJS) $(HLGN_OBJS) $(EXEC) halogen fit 2LPT
-	rm -f *~
-
-
-read_snapshot.o:        read_snapshot.c\
-                read_snapshot.h
-	$(CC) $(OPT) $(LIBS) $(DEFS) -c read_snapshot.c 
-
-place_halos.o:          place_halos.c\
-                        place_halos.h
-	$(CC) $(OPT) $(LIBS) $(DEFS) -c place_halos.c 
-=======
 fit:            fit.c halogen.c $(FIT_OBJ) $(FIT_OBJ:o=h)
 	$(CC) $(CFLAGS) $(DEFS) $(GSL_INCL) -o fit $(CUTE_OBJ) $(FIT_OBJ) fit.c $(GSL_LIB) $(OTHER_LIB)
 
 clean:
 	-rm -f $(ALL_OBJ) $(EXEC) halogen fit 2LPT
->>>>>>> Makefiles
 
 $(HLGN_OBJ) : %.o : %.c %.h
 	$(CC) $(CFLAGS) $(DEFS) -c $< $(OTHER_LIB)
