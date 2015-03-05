@@ -43,8 +43,6 @@ DEFS           +=      -DVERB				#Add some comments to cross-check.
 DEFS		+=	-DNO_PROB_PARALEL		#Fit parallel
 #DEFS		+=	-DNO_PAR_FIT		      	#Fit serial
 
-DEFS		+=	-DONLY_2LPT
-
 
 # //******   OPTIONS FOR 2LPT ************** //
 
