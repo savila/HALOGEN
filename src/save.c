@@ -23,13 +23,13 @@ int distribute_part(int Nlin,int nthreads,float **Partx, float **Party, float **
   *om_m = Omega;
   *Lbox = Box;
   *NTotPart = (GlassTileFac * GlassTileFac * GlassTileFac);
-  int nprocgroup, groupTask, masterTask;
+  int groupTask;//nprocgroup, groupTask, masterTask;
   int i,j,k;
   int *PartPerFile;
   MPI_Status status;
 
   float **file_x, **file_y, **file_z, **file_vx,**file_vy,**file_vz;
-  float *thisfile_x, *thisfile_y, *thisfile_z, *thisfile_vx,*thisfile_vy,*thisfile_vz;
+  //  float *thisfile_x, *thisfile_y, *thisfile_z, *thisfile_vx,*thisfile_vy,*thisfile_vz;
   int Nthisfile;
   Nthisfile= (int) NumPart;
 
