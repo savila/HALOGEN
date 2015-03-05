@@ -21,4 +21,5 @@ clean:
 		$(MAKE) -C src clean;\
 		rm -rf halogen
 		rm -f fit
+		rm -f 2LPT
 		rm -f $(EXEC)

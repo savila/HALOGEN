@@ -15,16 +15,16 @@ LIBS   =   -lm  $(MPICHLIB)  $(FFTW_LIB)  $(GSL_LIBS) -lgsl  -lgslcblas -fopenmp
 INCLUDES   =   $(FFTW_INCL) $(GSL_INCL)
 CFLAGS =   $(OPTIONS) $(DEFS) $(OPTIMIZE)
 
+
+
 $(EXEC): main.o $(2LPT_OBJS) $(HLGN_OBJS) 
 	$(CCMPI) $(OPTIMIZE) main.o $(2LPT_OBJS) $(HLGN_OBJS)  $(INCL) $(LIBS)   -o  $(EXEC)  
 
+2LPT: 2LPT.c $(2LPT_OBJS)
+	$(CCMPI) $(OPTIMIZE) $(2LPT_OBJS) $(INCL) 2LPT.c $(LIBS) $(DEFS) -o  2LPT  
+
 $(2LPT_OBJS): $(INCL) 
 $(HLGN_OBJS): $(INCL) 
-
-2LPT: 2LPT.o $(2LPT_OBJS)
-	$(CCMPI) $(OPTIMIZE) -DONLY_2LPT 2LPT.o $(2LPT_OBJS) $(INCL) $(LIBS)   -o  2LPT  
-
-
 
 halogen:	halogen.c\
 		read_snapshot.o\
@@ -48,9 +48,9 @@ fit:            fit.c\
 	$(CC) $(OPT) $(DEFS) $(CFLAGS) $(INCLUDES) -o fit cute.src/common.o cute.src/define.o cute.src/io.o cute.src/neighbors.o cute.src/correlator.o correlate.o read_snapshot.o place_halos.o  populate_mass_function.o fit.c $(LIBS)
 
 
-
 clean:
-	rm -f $(OBJS) $(EXEC) halogen fit
+	rm -f $(2LPT_OBJS) $(HLGN_OBJS) $(EXEC) halogen fit 2LPT
+	rm -f *~
 
 
 read_snapshot.o:        read_snapshot.c\

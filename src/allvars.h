@@ -79,17 +79,22 @@ extern int      NTaskWithN;
 
 extern int      *Slab_to_task;
 
-/*
+
+
+
+#ifdef ONLY_2LPT 
 extern struct part_data 
 {
   float Pos[3];
   float Vel[3];
-#ifdef  MULTICOMPONENTGLASSFILE                      
+  #ifdef  MULTICOMPONENTGLASSFILE                      
   int   Type;
-#endif
+  #endif
   long long ID;
 } *P;
-*/
+
+#else
+
 extern float *partX;
 extern float *partY;
 extern float *partZ;
@@ -97,6 +102,9 @@ extern float *partVX;
 extern float *partVY;
 extern float *partVZ;
 extern unsigned long long *partID;
+#endif
+
+
 
 
 
@@ -143,3 +151,5 @@ extern int Type, MinType, MaxType;
 extern int    WDM_On;
 extern int    WDM_Vtherm_On;
 extern double WDM_PartMass_in_kev;
+
+int FatalError(int errnum);
