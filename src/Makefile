@@ -16,7 +16,7 @@ OTHER_LIB   =   -lm  $(MPICHLIB)
 
 
 2LPT_INCL   = allvars.h proto.h  nrsrc/nrutil.h
-ALL_INCL = $(2LPT_INCL) $(FFTW_INCL) $(GSL_INCL)
+ALL_INCL = $(FFTW_INCL) $(GSL_INCL)
 ALL_LIB  = $(FFTW_LIB) $(GSL_LIB) $(OTHER_LIB)
 
 ###### RULES
@@ -24,7 +24,7 @@ $(EXEC): main.c $(2LPT_OBJ) $(HLGN_OBJ)
 	$(CCMPI) $(CFLAGS) $(DEFS) $(2LPT_OBJ) $(HLGN_OBJ) main.c $(ALL_INCL) $(ALL_LIB)  -o  $(EXEC)  
 
 $(2LPT_OBJ): %.o : %.c $(2LPT_INCL)
-	 $(CCMPI) $(CFLAGS) $(DEFS) $(2LPTOPTS) $(FFTW_INCL) -o $@ -c $< $(FFTW_LIB) $(OTHER_LIB) 
+	 $(CCMPI) $(CFLAGS) $(DEFS) $(2LPTOPTS) $(ALL_INCL) -o $@ -c $< $(ALL_LIB) $(OTHER_LIB) 
 
 2LPT: DEFS+=-DONLY_2LPT
 2LPT: 2LPT.c $(2LPT_OBJ) $(2LPT_INCL)
@@ -44,7 +44,7 @@ $(HLGN_OBJ) : %.o : %.c %.h
 	$(CC) $(CFLAGS) $(DEFS) -c $< $(OTHER_LIB)
 
 correlate.o: %.o : cute %.c %.h
-	$(CC) $(CFLAGS) $(DEFS) -c correlate.c correlate.h $(OTHER_LIB)
+	$(CC) $(CFLAGS) $(DEFS) -c correlate.c $(OTHER_LIB)
 
 cute:                   
 	$(MAKE) -C cute.src cute
