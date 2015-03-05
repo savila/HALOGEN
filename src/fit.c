@@ -678,9 +678,10 @@ int find_best_alpha(){
 	int nbreak, iii,ind,min_ind,max_ind;
 
 	long thisseed[Nalpha*num_alpha*ntrials];
+#ifdef ALLOUT
 	char Output2PCF[LINELENGTH];
 	char ThisFile[15];
-
+#endif
 
 	ncoeffs = num_alpha-1;
 	nbreak =ncoeffs-2;
@@ -820,7 +821,7 @@ int find_best_alpha(){
 		}
 
 	//	#pragma omp parallel for private(ir,j,chi2,k) shared(num_alpha,stderr,i,nr,alpha_2pcf) default(none)
-		fprintf(stderr,"GOT CORRELATIONS (%ld,%ld) , GETTING CHI2...\n",i,j);
+		fprintf(stderr,"GOT CORRELATIONS , GETTING CHI2...\n");
 		for(j=0;j<num_alpha;j++){
 			//Get mean and stdev of trials_2pcf
 			chi2 = 0.0;

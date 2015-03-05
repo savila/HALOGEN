@@ -4,6 +4,10 @@ $(EXEC):
 		$(MAKE) -C src $(EXEC);\
 		mv -f src/$(EXEC) $(EXEC)
 
+2LPT:
+		$(MAKE) -C src 2LPT;\
+		mv -f src/2LPT 2LPT
+
 
 halogen:
 		$(MAKE) -C src halogen;\
@@ -17,4 +21,5 @@ clean:
 		$(MAKE) -C src clean;\
 		rm -rf halogen
 		rm -f fit
+		rm -f 2LPT
 		rm -f $(EXEC)

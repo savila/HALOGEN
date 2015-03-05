@@ -16,20 +16,20 @@ Roman Scoccimarro and Sebastian Pueblas (http://cosmo.nyu.edu/roman/2LPT/)
 
 
 
-
+#ifndef ONLY_2LPT
 int distribute_part(int Nlin,int nthreads,float **Partx, float **Party, float **Partz, float **Partvx, float **Partvy, float **Partvz, long *NTotPart, float *Lbox, float *om_m, long ***ListOfPart,long **NPartPerCell)
 {
 
   *om_m = Omega;
   *Lbox = Box;
   *NTotPart = (GlassTileFac * GlassTileFac * GlassTileFac);
-  int nprocgroup, groupTask, masterTask;
+  int groupTask;//nprocgroup, groupTask, masterTask;
   int i,j,k;
   int *PartPerFile;
   MPI_Status status;
 
   float **file_x, **file_y, **file_z, **file_vx,**file_vy,**file_vz;
-  float *thisfile_x, *thisfile_y, *thisfile_z, *thisfile_vx,*thisfile_vy,*thisfile_vz;
+  //  float *thisfile_x, *thisfile_y, *thisfile_z, *thisfile_vx,*thisfile_vy,*thisfile_vz;
   int Nthisfile;
   Nthisfile= (int) NumPart;
 
@@ -403,20 +403,59 @@ MPI_Barrier(MPI_COMM_WORLD);
   return 0;
 }
 
-/*
+#else //ONLY_2LPT
+void save_local_data(void);
+
+void write_particle_data(void)
+{
+  int nprocgroup, groupTask, masterTask;
+
+  if(ThisTask == 0)
+    printf("\nwriting initial conditions... \n");
+
+
+  if((NTask < NumFilesWrittenInParallel))
+    {
+      printf
+	("Fatal error.\nNumber of processors must be a smaller or equal than `NumFilesWrittenInParallel'.\n");
+      FatalError(24131);
+    }
+
+
+  nprocgroup = NTask / NumFilesWrittenInParallel;
+
+  if((NTask % NumFilesWrittenInParallel))
+    nprocgroup++;
+
+  masterTask = (ThisTask / nprocgroup) * nprocgroup;
+
+
+  for(groupTask = 0; groupTask < nprocgroup; groupTask++)
+    {
+      if(ThisTask == (masterTask + groupTask))	/* ok, it's this processor's turn */
+	save_local_data();
+
+      /* wait inside the group */
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+
+  if(ThisTask == 0)
+    printf("done with writing initial conditions.\n");
+}
+
 void save_local_data(void)
 {
 #define BUFFER 10
   size_t bytes;
   float *block;
-  int *blockid;
-  long long *blocklongid;
-  int blockmaxlen, maxidlen, maxlongidlen;
+
+
+  int blockmaxlen,  maxlongidlen;
   int4byte dummy;
   FILE *fd;
   char buf[300];
   int i, k, pc;
-  double meanspacing, shift_gas, shift_dm;
+
 
 
   if(NumPart == 0)
@@ -507,9 +546,15 @@ void save_local_data(void)
   my_fwrite(&dummy, sizeof(dummy), 1, fd);
 
 
+
+#ifdef  PRODUCEGAS
+  double meanspacing;
+  double  shift_gas, shift_dm;
   meanspacing = Box / pow(TotNumPart, 1.0 / 3);
   shift_gas = -0.5 * (Omega - OmegaBaryon) / (Omega) * meanspacing;
   shift_dm = +0.5 * OmegaBaryon / (Omega) * meanspacing;
+#endif
+
 
 
   if(!(block = malloc(bytes = BUFFER * 1024 * 1024)))
@@ -520,9 +565,13 @@ void save_local_data(void)
 
   blockmaxlen = bytes / (3 * sizeof(float));
 
+#ifdef NO64BITID
+  int *blockid;
   blockid = (int *) block;
+#else
+  long long *blocklongid;
   blocklongid = (long long *) block;
-  maxidlen = bytes / (sizeof(int));
+#endif
   maxlongidlen = bytes / (sizeof(long long));
 
   // write coordinates 
@@ -757,7 +806,8 @@ void save_local_data(void)
 
   fclose(fd);
 }
-*/
+
+#endif //ONLY_2LPT
 
 /* This catches I/O errors occuring for my_fwrite(). In this case we better stop.
  */

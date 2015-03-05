@@ -4,3 +4,5 @@
 halogen
 fit
 #*#
+*.h.gch
+examples/ONLY_2LPT/output/*

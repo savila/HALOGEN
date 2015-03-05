@@ -197,7 +197,9 @@ void read_glass(char *fname)
 
   if(NumPart)
     {
-      //P = (struct part_data *) malloc(bytes = sizeof(struct part_data) * NumPart);
+      #ifdef ONLY_2LPT
+      P = (struct part_data *) malloc(bytes = sizeof(struct part_data) * NumPart);
+      #else
       partX = (float *) malloc( sizeof(float) * NumPart);
       partY = (float *) malloc( sizeof(float) * NumPart);
       partZ = (float *) malloc( sizeof(float) * NumPart);
@@ -212,6 +214,7 @@ void read_glass(char *fname)
 		 NumPart, ThisTask);
 	  FatalError(9891);
 	}
+      #endif
     }
 
 
@@ -239,20 +242,21 @@ void read_glass(char *fname)
 		      y = pos[3 * n + 1] / header1.BoxSize * (Box / GlassTileFac) + j * (Box / GlassTileFac);
 		      z = pos[3 * n + 2] / header1.BoxSize * (Box / GlassTileFac) + k * (Box / GlassTileFac);
 
-		      partX[count]=x;
-		      partY[count]=y;
-		      partZ[count]=z;
-/*
+#ifdef ONLY_2LPT
 		      P[count].Pos[0] = x;
 		      P[count].Pos[1] = y;
 		      P[count].Pos[2] = z;
-#ifdef  MULTICOMPONENTGLASSFILE
+			#ifdef  MULTICOMPONENTGLASSFILE
 		      P[count].Type = type - 1;
-#endif
+			#endif
 		      P[count].ID = IDStart;
-*/
-		      partID[count]=IDStart;
+#else
 
+		      partX[count]=x;
+		      partY[count]=y;
+		      partZ[count]=z;
+		      partID[count]=IDStart;
+#endif
 		      count++;
 		    }
 

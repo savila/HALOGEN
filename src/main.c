@@ -216,9 +216,10 @@ int main(int argc, char **argv) {
 
   if(ThisTask == 0) 
   {
-	int i,j,k,lin_ijk;	
+
 	
   	#ifdef DEBUG
+	int i,j,k,lin_ijk;	
 	for (i=0; i<Nlin;i++)
 	for (j=0; j<Nlin;j++)
 	for (k=0; k<Nlin;k++)	
@@ -654,9 +655,9 @@ void displacement_fields(void)
 	    }
 
 
-      if(ThisTask == 0) printf(stderr,"\tFourier transforming displacement gradient...\n");
+      if(ThisTask == 0) fprintf(stderr,"\tFourier transforming displacement gradient...\n");
       for(i = 0; i < 6; i++) rfftwnd_mpi(Inverse_plan, 1, digrad[i], Workspace, FFTW_NORMAL_ORDER);
-      if(ThisTask == 0) printf(stderr,"\tDone.\n");
+      if(ThisTask == 0) fprintf(stderr,"\tDone.\n");
 
       /* Compute second order source and store it in digrad[3]*/
 
@@ -1045,14 +1046,6 @@ void free_ffts(void)
   rfftwnd_mpi_destroy_plan(Forward_plan);
 }
 
-
-int FatalError(int errnum)
-{
-  printf("FatalError called with number=%d\n", errnum);
-  fflush(stdout);
-  MPI_Abort(MPI_COMM_WORLD, errnum);
-  exit(0);
-}
 
 
 

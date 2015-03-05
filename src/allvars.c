@@ -42,7 +42,9 @@ int *Slab_to_task;
 
 int NTaskWithN;
 
-//struct part_data *P;
+#ifdef ONLY_2LPT
+struct part_data *P;
+#else
 float *partX;
 float *partY;
 float *partZ;
@@ -50,7 +52,7 @@ float *partVX;
 float *partVY;
 float *partVZ;
 unsigned long long *partID;
-
+#endif
 
 int Nglass;
 
@@ -95,3 +97,12 @@ int Type, MinType, MaxType;
 int WDM_On;
 int WDM_Vtherm_On;
 double WDM_PartMass_in_kev;
+
+int FatalError(int errnum)
+{
+  printf("FatalError called with number=%d\n", errnum);
+  fflush(stdout);
+  MPI_Abort(MPI_COMM_WORLD, errnum);
+  exit(0);
+}
+

@@ -10,7 +10,7 @@ CCMPI     =  cc
 CC        =  cc
 MPICHLIB  = #path 
 
-OPTIMIZE  =  -O3 -Wall    # optimization and warning flags
+CFLAGS  = -03 -Wall -fopenmp  # other cflags (optimization, warnings,openmp etc.)
 ###############################################################
 
 # //******   HALOGEN DEFINE OPTIONS ************** //
@@ -42,7 +42,6 @@ DEFS           +=      -DVERB				#Add some comments to cross-check.
 #DEFS		+=	-DMASS_CUTS_FIT			#Use mass cuts instead of number cuts for the fit 
 DEFS		+=	-DNO_PROB_PARALEL		#Fit parallel
 #DEFS		+=	-DNO_PAR_FIT		      	#Fit serial
-
 
 
 # //******   OPTIONS FOR 2LPT ************** //

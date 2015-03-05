@@ -43,12 +43,14 @@ void read_parameterfile(char *fname)
   strcpy(tag[nt], "OmegaBaryon");
   addr[nt] = &OmegaBaryon;
   id[nt++] = FLOAT;
-/*
+
+#ifdef ONLY_2LPT
   strcpy(tag[nt], "OmegaDM_2ndSpecies");
   addr[nt] = &OmegaDM_2ndSpecies;
   id[nt++] = FLOAT;
-*/
+#else
   OmegaDM_2ndSpecies=0.0;
+#endif
 
   strcpy(tag[nt], "HubbleParam");
   addr[nt] = &HubbleParam;
@@ -67,6 +69,7 @@ void read_parameterfile(char *fname)
   addr[nt] = &PrimordialIndex;
   id[nt++] = FLOAT;
 */
+//Assume Pk is already tilted
   PrimordialIndex=1;
 
 
@@ -101,6 +104,7 @@ void read_parameterfile(char *fname)
   strcpy(tag[nt], "Seed");
   addr[nt] = &Seed;
   id[nt++] = INT;
+
 /*
   strcpy(tag[nt], "SphereMode");
   addr[nt] = &SphereMode;
@@ -109,7 +113,8 @@ void read_parameterfile(char *fname)
 
   SphereMode = 0;
 
-/*
+
+#ifdef ONLY_2LPT
   strcpy(tag[nt], "NumFilesWrittenInParallel");
   addr[nt] = &NumFilesWrittenInParallel;
   id[nt++] = INT;
@@ -121,7 +126,8 @@ void read_parameterfile(char *fname)
   strcpy(tag[nt], "FileBase");
   addr[nt] = FileBase;
   id[nt++] = STRING;
-*/
+#endif
+
   strcpy(tag[nt], "WhichSpectrum");
   addr[nt] = &WhichSpectrum;
   id[nt++] = INT;
@@ -142,7 +148,8 @@ void read_parameterfile(char *fname)
   addr[nt] = &InputSpectrum_UnitLength_in_cm;
   id[nt++] = FLOAT;
 
-/*
+
+#ifdef ONLY_2LPT
   strcpy(tag[nt], "WDM_On");
   addr[nt] = &WDM_On;
   id[nt++] = INT;
@@ -154,7 +161,8 @@ void read_parameterfile(char *fname)
   strcpy(tag[nt], "WDM_PartMass_in_kev");
   addr[nt] = &WDM_PartMass_in_kev;
   id[nt++] = FLOAT;
-*/
+#endif
+
   WDM_On=0;
   
   
