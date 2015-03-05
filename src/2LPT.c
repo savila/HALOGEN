@@ -747,15 +747,6 @@ void free_ffts(void)
 }
 
 
-int FatalError(int errnum)
-{
-  printf("FatalError called with number=%d\n", errnum);
-  fflush(stdout);
-  MPI_Abort(MPI_COMM_WORLD, errnum);
-  exit(0);
-}
-
-
 
 
 static double A, B, alpha, beta, V, gf;
