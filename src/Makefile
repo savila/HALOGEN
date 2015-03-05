@@ -2,9 +2,10 @@ include ../Makefile.defs
 
 EXEC   = 2LPT-HALOGEN
 
-OBJS   = main.o power.o allvars.o save.o read_param.o  read_glass.o  \
-         nrsrc/nrutil.o nrsrc/qromb.o nrsrc/polint.o nrsrc/trapzd.o \
-	 read_snapshot.o place_halos.o populate_mass_function.o
+2LPT_OBJS   = power.o allvars.o save.o read_param.o  read_glass.o  \
+	nrsrc/nrutil.o nrsrc/qromb.o nrsrc/polint.o nrsrc/trapzd.o 
+
+HLGN_OBJS   = read_snapshot.o place_halos.o populate_mass_function.o
 
 INCL   = allvars.h proto.h  nrsrc/nrutil.h
 
@@ -14,10 +15,15 @@ LIBS   =   -lm  $(MPICHLIB)  $(FFTW_LIB)  $(GSL_LIBS) -lgsl  -lgslcblas -fopenmp
 INCLUDES   =   $(FFTW_INCL) $(GSL_INCL)
 CFLAGS =   $(OPTIONS) $(DEFS) $(OPTIMIZE)
 
-$(EXEC): $(OBJS) 
-	$(CCMPI) $(OPTIMIZE) $(OBJS) $(INCL) $(LIBS)   -o  $(EXEC)  
+$(EXEC): main.o $(2LPT_OBJS) $(HLGN_OBJS) 
+	$(CCMPI) $(OPTIMIZE) main.o $(2LPT_OBJS) $(HLGN_OBJS)  $(INCL) $(LIBS)   -o  $(EXEC)  
 
-$(OBJS): $(INCL) 
+$(2LPT_OBJS): $(INCL) 
+$(HLGN_OBJS): $(INCL) 
+
+2LPT: 2LPT.o $(2LPT_OBJS)
+	$(CCMPI) $(OPTIMIZE) -DONLY_2LPT 2LPT.o $(2LPT_OBJS) $(INCL) $(LIBS)   -o  2LPT  
+
 
 
 halogen:	halogen.c\
