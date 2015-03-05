@@ -2,73 +2,48 @@ include ../Makefile.defs
 
 EXEC   = 2LPT-HALOGEN
 
-2LPT_OBJS   = power.o allvars.o save.o read_param.o  read_glass.o  \
-	nrsrc/nrutil.o nrsrc/qromb.o nrsrc/polint.o nrsrc/trapzd.o 
+###### DEFINE OBJECT CATEGORIES
+CUTE_OBJ    = $(addprefix cute.src/,common.o define.o io.o neighbors.o correlator.o)
+2LPT_OBJ   = power.o allvars.o save.o read_param.o  read_glass.o \
+	$(addprefix nrsrc/,nrutil.o qromb.o polint.o trapzd.o) 
+HLGN_OBJ   = read_snapshot.o place_halos.o populate_mass_function.o
+FIT_OBJ    = $(HLGN_OBJ) correlate.o
+ALL_OBJ    = $(CUTE_OBJ) $(2LPT_OBJ) $(FIT_OBJ)
 
-HLGN_OBJS   = read_snapshot.o place_halos.o populate_mass_function.o
-
-INCL   = allvars.h proto.h  nrsrc/nrutil.h
-
+####### SPECIFY ALL LIBRARIES
 FFTW_LIB =  $(FFTW_LIBS)  -ldrfftw_mpi -ldfftw_mpi -ldrfftw -ldfftw
+GSL_LIB = $(GSL_LIBS) -lgsl  -lgslcblas
+OTHER_LIB   =   -lm  $(MPICHLIB)
 
-LIBS   =   -lm  $(MPICHLIB)  $(FFTW_LIB)  $(GSL_LIBS) -lgsl  -lgslcblas -fopenmp
-INCLUDES   =   $(FFTW_INCL) $(GSL_INCL)
-CFLAGS =   $(OPTIONS) $(DEFS) $(OPTIMIZE)
+2LPT_INCL   = allvars.h proto.h  nrsrc/nrutil.h
+ALL_INCL = $(2LPT_INCL) $(FFTW_INCL) $(GSL_INCL)
+ALL_LIB  = $(FFTW_LIB) $(GSL_LIB) $(OTHER_LIB)
 
-$(EXEC): main.o $(2LPT_OBJS) $(HLGN_OBJS) 
-	$(CCMPI) $(OPTIMIZE) main.o $(2LPT_OBJS) $(HLGN_OBJS)  $(INCL) $(LIBS)   -o  $(EXEC)  
+###### RULES
+$(EXEC): main.c $(2LPT_OBJ) $(HLGN_OBJ) 
+	$(CCMPI) $(CFLAGS) $(DEFS) main.c $(2LPT_OBJ) $(HLGN_OBJ) $(ALL_INCL) $(ALL_LIB)  -o  $(EXEC)  
 
-$(2LPT_OBJS): $(INCL) 
-$(HLGN_OBJS): $(INCL) 
+$(2LPT_OBJ): %.o : %.c $(2LPT_INCL)
+	 $(CCMPI) $(CFLAGS) -DONLY_2LPT $(FFTW_INCL) -o $@ -c $< $(FFTW_LIB) $(OTHER_LIB) 
 
-2LPT: 2LPT.o $(2LPT_OBJS)
-	$(CCMPI) $(OPTIMIZE) -DONLY_2LPT 2LPT.o $(2LPT_OBJS) $(INCL) $(LIBS)   -o  2LPT  
-
-
-
-halogen:	halogen.c\
-		read_snapshot.o\
-		read_snapshot.h\
-		place_halos.o\
-		place_halos.h\
-		populate_mass_function.o\
-		populate_mass_function.h
-	$(CC) $(OPTIMIZE) $(LIBS) $(DEFS) -o halogen read_snapshot.o place_halos.o  populate_mass_function.o halogen.c
-
-fit:            fit.c\
-                halogen.c\
-                read_snapshot.o\
-                read_snapshot.h\
-                place_halos.o\
-                place_halos.h\
-                populate_mass_function.o\
-                populate_mass_function.h\
-                correlate.o\
-                correlate.h
-	$(CC) $(OPT) $(DEFS) $(CFLAGS) $(INCLUDES) -o fit cute.src/common.o cute.src/define.o cute.src/io.o cute.src/neighbors.o cute.src/correlator.o correlate.o read_snapshot.o place_halos.o  populate_mass_function.o fit.c $(LIBS)
+2LPT: 2LPT.c $(2LPT_OBJ) $(2LPT_INCL)
+	$(CCMPI) $(CFLAGS) -DONLY_2LPT 2LPT.c $(2LPT_OBJ) $(FFTW_INCL) $(FFTW_LIB) $(OTHER_LIB)  -o  2LPT  
 
 
+halogen:	halogen.c $(HLGN_OBJ) $(HLGN_OBJ:o=h)
+	$(CC) $(CFLAGS) $(DEFS) halogen.c $(HLGN_OBJ) $(OTHER_LIB)
+
+fit:            fit.c halogen.c $(FIT_OBJ) $(FIT_OBJ:o=h)
+	$(CC) $(CFLAGS) $(DEFS) $(GSL_INCL) -o fit $(CUTE_OBJ) $(FIT_OBJ) fit.c $(GSL_LIB) $(OTHER_LIB)
 
 clean:
-	rm -f $(OBJS) $(EXEC) halogen fit
+	-rm -f $(ALL_OBJ) $(EXEC) halogen fit 2LPT
 
+$(HLGN_OBJ) : %.o : %.c %.h
+	$(CC) $(CFLAGS) $(DEFS) -c $< $(OTHER_LIB)
 
-read_snapshot.o:        read_snapshot.c\
-                read_snapshot.h
-	$(CC) $(OPT) $(LIBS) $(DEFS) -c read_snapshot.c 
-
-place_halos.o:          place_halos.c\
-                        place_halos.h
-	$(CC) $(OPT) $(LIBS) $(DEFS) -c place_halos.c 
-
-populate_mass_function.o:               populate_mass_function.c\
-                                        populate_mass_function.h
-	$(CC) $(OPT) $(LIBS) $(DEFS) -c populate_mass_function.c 
-
-correlate.o:		cute\
-			correlate.c\
-			correlate.h
-	$(CC) $(OPT) $(LIBS) $(DEFS) -c correlate.c
+correlate.o: %.o : cute %.c %.h
+	$(CC) $(CFLAGS) $(DEFS) -c correlate.c correlate.h $(OTHER_LIB)
 
 cute:                   
 	$(MAKE) -C cute.src cute
