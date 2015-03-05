@@ -24,7 +24,7 @@ GlassTileFac   512
 Omega            0.270000       % Total matter density  (at z=0)
 OmegaLambda      0.730000        % Cosmological constant (at z=0)
 OmegaBaryon      0.044000      % Baryon density        (at z=0)
-%OmegaDM_2ndSpecies  0      % Omega for a second dark matter species (at z=0)
+OmegaDM_2ndSpecies  0      % Omega for a second dark matter species (at z=0)
 HubbleParam      0.700000       % Hubble paramater (may be used for power spec parameterization)
 
 Redshift         0.00        % Starting redshift
@@ -40,7 +40,7 @@ WhichSpectrum    2         % "1" selects Eisenstein & Hu spectrum,
                            % otherwise, Efstathiou parametrization is used
 
                   
-FileWithInputSpectrum   examples/ONLY_2LPT/data/glass1_le/GOLIAT_powerspectrum.dat
+FileWithInputSpectrum   examples/ONLY_2LPT/data/GOLIAT_powerspectrum.dat
                                                                          % filename of tabulated input
                                                                          % expecting logk logPk 
                                                                        

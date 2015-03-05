@@ -108,9 +108,9 @@ int read_snapshot(char *infile_name, int format, float lunit, float munit, int s
   long  ipart=0,ii,i,j,k,lin_ijk;
   FILE   *icfile;
   long   *PartPerFile;
-  double invL, *MassLeft;
+  double invL;
   long *count;
-  time_t t0,t1,t2,t3,t4,t5,t6,t7;
+  time_t t0,t1,t2,t3,t4,t5,t6;
   float diff;
 
   float **file_x, **file_y, **file_z, **file_vx,**file_vy,**file_vz; 
@@ -439,7 +439,7 @@ int read_snapshot_serial(char *infile_name, int format, float lunit, float munit
   int     no_gadget_files, i_gadget_file;
   long   i,j,k,lin_ijk;
   FILE   *icfile;
-  double *MassLeft;
+  //  double *MassLeft;
   #ifdef DEBUG
   time_t t0,t1,t2,t3,t4;
   float diff;
