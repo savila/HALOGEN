@@ -94,9 +94,10 @@ int main(int argc, char **argv){
 
 	float Lbox, mpart, *x, *y, *z, *vx,*vy,*vz,*hx, *hy, *hz, *hvx,*hvy,*hvz,*hR, om_m;	
 	char inname[256];
-	long Npart, Nhalos, **ListOfParticles, *NPartPerCell;
+	unsigned long long Npart, Nhalos, **ListOfParticles, *NPartPerCell;
 	float *HaloMass, rho;
 
+	float *dens;
 	int number_exclusion=0;
 
 	strcpy(inname,argv[1]);
@@ -141,7 +142,7 @@ if (number_exclusion!=1){
 
 
 	fprintf(stderr,"Reading Gadget file(s)...\n");
-	if (read_snapshot(Snapshot, format, LUNIT, MUNIT, SWP, LGADGET, DGADGET,Nlin,&x, &y, &z, &vx, &vy, &vz, &Npart, &mpart, &Lbox, &om_m,&ListOfParticles,&NPartPerCell)==0)
+	if (read_snapshot(Snapshot, format, LUNIT, MUNIT, SWP, LGADGET, DGADGET,Nlin,nthreads,&x, &y, &z, &vx, &vy, &vz, &Npart, &mpart, &Lbox, &om_m,&ListOfParticles,&NPartPerCell,&dens)==0)
 		fprintf(stderr,"Gadget file(s) correctly read!\n");
 	else {
 		fprintf(stderr,"ERROR: Something went wrong reading the gadget file %s\n",inname);
@@ -199,7 +200,7 @@ if (number_exclusion!=1){
 		}
 	}
 
-	if (place_halos(Nhalos,HaloMass, Nlin, Npart, x, y, z, vx,vy,vz,Lbox, rho,seed,mpart, nthreads,alpha, fvel, Malpha, Nalpha,recalc_frac,hx, hy, hz, hvx,hvy,hvz, hR,ListOfParticles,NPartPerCell)==0){
+	if (place_halos(Nhalos,HaloMass, Nlin, Npart, x, y, z, vx,vy,vz,Lbox, rho,seed,mpart, nthreads,alpha, fvel, Malpha, Nalpha,recalc_frac,hx, hy, hz, hvx,hvy,hvz, hR,ListOfParticles,NPartPerCell,dens)==0){
 		fprintf(stderr,"...halos placed correctly\n");
 	}
 	else {
