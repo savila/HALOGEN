@@ -55,9 +55,6 @@ InputSpectrum_UnitLength_in_cm  3.085678e24 % defines length unit of tabulated
 %ShapeGamma       0.21     % only needed for Efstathiou power spectrum 
 
 
-%PrimordialIndex  1.0      % may be used to tilt the primordial index, needed for nongaussian inital potential
-
-
 Seed             1681293445    %  Seed for IC-generator
 
 

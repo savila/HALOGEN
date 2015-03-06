@@ -8,13 +8,13 @@
 MassFunctionFile	examples/FULL_HALOGEN/data/HMF_Behroozi_z0.0.dat
 
 #Full Path to the output
-OutputFile	output/GOLIAT.halos
+OutputFile	examples/FULL_HALOGEN/output/GOLIAT.halos
 
 #Number of Cells per side of the grid used (lcell=Lbox/NCellsLin)
 NCellsLin	250
 
 #Full path to the tabulated alpha(Mass) relation. Format: alpha M[M_sun/h]
-alphaFile       examples/FULL_HALOGEN/data/M-alpha-l4.txt
+alphaFile       examples/FULL_HALOGEN/data/M-alpha.txt
 
 #Relative error allowed in CumulativeProb
 recalc_frac	1.0

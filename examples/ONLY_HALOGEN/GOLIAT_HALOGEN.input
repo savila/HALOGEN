@@ -21,13 +21,6 @@ NCellsLin	250
 #Full path to the tabulated alpha(Mass) relation. Format: alpha M[M_sun/h]
 alphaFile       examples/ONLY_HALOGEN/data/M-alpha.txt
 
-#Beta (-1.0 for beta=alpha)
-Beta		0.0
-
-#Velocity correction factor 
-vel_fact	0.73970156142110632
-#vel_fact	0.76481288683187243
-
 #Relative error allowed in CumulativeProb
 recalc_frac	1.0
 
@@ -45,7 +38,7 @@ Overdensity	200
 Mmin		2.0e-4
 
 #Random seed. If negative, synchronized with time.
-Seed -1
+Seed 1422358203
 
 ######### Specific Gadget formats ########
 GadL_Unit 	1.0

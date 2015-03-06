@@ -1,28 +1,23 @@
 ========
 EXAMPLES
 ========
+Included here are four examples of how to use HALOGEN. They
+should be run through in the order that they appear here.
 
-Included here are four examples of how to use HALOGEN.
-
-The expected usual workflow will be to run a fit for a given
-simulation (ie. do something like the included FITTING/ example),
-and then run the full ``2LPT-HALOGEN``, which merges the 2LPT and 
-HALOGEN steps, skipping the expensive intervening I/O. 
-
-Each example is completely self-contained in its own directory,
-and includes its own readme.
-
-Just remember that the M-alpha here is for j1Gp_N512_z0.00_WN_l4
+Each example is completely self-contained in its own directory.
+To compile the relevant executables for these examples, edit
+the top-level ``Makefile.defs`` according to your system
+specifications (don't touch the DEFS at this stage), and
+type ``make``.
 
 
 Running pure 2LPT
 -----------------
-You can compile a standalone 2LPTic executable from within
-HALOGEN. This is included to be self-contained. 
+HALOGEN includes a fully-working standalone 2LPTic 
+executable. This is included to be self-contained. 
 
-To compile the executable type ``make 2LPT``. Included here
-is an example input file for the ``2LPT`` executable, located
-in the ONLY_2LPT directory. To run it, use 
+Included here is an example input file for the ``2LPT`` 
+executable, located in the ONLY_2LPT directory. To run it, use 
 ``./2LPT examples/ONLY_2LPT/2LPT.input`` from the top-level
 directory of HALOGEN. 
 
@@ -50,8 +45,7 @@ Running standalone HALOGEN
 --------------------------
 HALOGEN can be built to run directly on a GADGET-format snapshot.
 In this way, one can run many realisations of the HALOGEN-unique
-part of the process on a single density field. To compile the
-standalone HALOGEN executable, type ``make halogen``. 
+part of the process on a single density field. 
 
 To run the example, located in the ``ONLY_HALOGEN`` directory,
 make sure you first run the pure 2LPT example above, as it is
@@ -126,7 +120,7 @@ Running Full HALOGEN
 The most common usage of HALOGEN will be to merge the ``2LPT` and ``HALOGEN``
 components into one step, mitigating the expensive IO of writing the snapshot
 to file. This is possible by using the ``2LPT-HALOGEN``
-executable. Compiling this executable is done simply by typing ``make``.
+executable. 
 
 To run the example, type
 

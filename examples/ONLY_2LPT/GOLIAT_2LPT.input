@@ -54,7 +54,7 @@ ShapeGamma       0.21     % only needed for Efstathiou power spectrum
 
 
 
-Seed             834231750    %  Seed for IC-generator
+Seed             1681293445    %  Seed for IC-generator
 
 
 NumFilesWrittenInParallel 16  % limits the number of files that are
