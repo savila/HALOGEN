@@ -5,13 +5,13 @@
   al. 2014 -- http://arxiv.org/abs/1412.5228. Intended for public use.
 
 #### Features
-    * Makefile contains a default "all" target to make all executables.
-    * Compiles on gcc, icc, craycc
-    * Fully working examples and docs
-    * Standalone 2LPT executable
+     * Makefile contains a default "all" target to make all executables.
+     * Compiles on gcc, icc, craycc
+     * Fully working examples and docs
+     * Standalone 2LPT executable
 
 #### Bugfixes
-    * Various small bugfixes for compilation
+     * Various small bugfixes for compilation
 
 #### Misc.
      * Several compiler warnings cleaned up.
