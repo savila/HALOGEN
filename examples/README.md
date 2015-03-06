@@ -7,13 +7,13 @@ should be run through in the order that they appear here.
 Each example is completely self-contained in its own directory.
 To compile the relevant executables for these examples, edit
 the top-level ``Makefile.defs`` according to your system
-specifications (don't touch the DEFS at this stage), and
+specifications (don't touch the ``DEFS`` at this stage), and
 type ``make``.
 
 Each example is precisely the same where it overlaps with other
 examples. Each is simulating a box called the GOLIAT simulation,
-which is an L=1000, N=512 box with OmegaM = 0.27, OmegaLambda = 0.73, 
-sigma_8 = 0.8 and H0=70.0.
+which is an L=1000, N=512 box with $\Omega_M$ = 0.27, 
+$\Omega_\Lambda$ = 0.73, $\sigma_8$ = 0.8 and $H_0$=70.0.
 
 Running pure 2LPT
 -----------------
