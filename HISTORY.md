@@ -1,21 +1,17 @@
-=======================
-HALOGEN VERSION HISTORY
-=======================
-v1.0beta
---------
-Version accompanying re-submittal of Avila, S. et
-al. 2014 -- http://arxiv.org/abs/1412.5228. Intended for public use.
+# HALOGEN VERSION HISTORY
 
-Features
-++++++++
-* Makefile contains a default "all" target to make all executables.
-* Compiles on gcc, icc, craycc
-* Fully working examples and docs
-* Standalone 2LPT executable
+  ## v1.0beta
+  Version accompanying re-submittal of Avila, S. et
+  al. 2014 -- http://arxiv.org/abs/1412.5228. Intended for public use.
 
-Bugfixes
-++++++++
-* Various small bugfixes for compilation
+    ### Features
+    * Makefile contains a default "all" target to make all executables.
+    * Compiles on gcc, icc, craycc
+    * Fully working examples and docs
+    * Standalone 2LPT executable
+
+    ### Bugfixes
+    * Various small bugfixes for compilation
 
 Misc.
 +++++
