@@ -14,7 +14,7 @@ Nsample       512          % sets the maximum k that the code uses,
 
 Box             1000.0    % Periodic box size of simulation
 
-FileBase         GOLIAT_snpashot          % Base-filename of output files
+FileBase         GOLIAT_snapshot          % Base-filename of output files
 OutputDir        examples/ONLY_2LPT/output % Directory for output
 
 GlassFile        examples/ONLY_2LPT/data/glass1_le 

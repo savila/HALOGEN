@@ -1,8 +1,7 @@
 ========
 EXAMPLES
 ========
-Included here are four examples of how to use HALOGEN. They
-should be run through in the order that they appear here.
+Included here are four examples of how to use HALOGEN. 
 
 Each example is completely self-contained in its own directory.
 To compile the relevant executables for these examples, edit
@@ -23,11 +22,11 @@ executable. This is included to be self-contained.
 An example input file for the ``2LPT`` executable is located 
 in the ``ONLY_2LPT`` directory. To run it, use 
 
-    $./2LPT examples/ONLY_2LPT/GOLIAT_2LPT.input
+    $mpiexec -np 16 2LPT examples/ONLY_2LPT/GOLIAT_2LPT.input
 
-from the top-level directory of HALOGEN. 
-
-TIMING??
+from the top-level directory of HALOGEN. The number of mpi tasks
+is specified after ``-np`` (16 in this example). But the specific
+call for mpi will depend on the mpi compiler used.   
 
 The input file for 2LPT includes settings for the boxsize and
 number of particles, and the cosmology. In the case of this 
@@ -50,7 +49,13 @@ Running standalone HALOGEN
 --------------------------
 HALOGEN can be built to run directly on a GADGET-format snapshot.
 In this way, one can run many realisations of the HALOGEN-unique
-part of the process on a single density field. 
+part of the process on a single density field. It also serves to 
+study how halogen parameters affect the output without changing
+the density field. And it can also be used with other density 
+fields different from 2LPT.
+
+To compile the standalone HALOGEN executable, type i ``make 
+halogen``.
 
 To run the example, located in the ``ONLY_HALOGEN`` directory,
 make sure you first run the standalone 2LPT example above, as it is
@@ -66,7 +71,7 @@ HALOGEN, apart from the input specification file itself, consists of
 3 files:
 
 * *Snapshot*: A GADGET-format snapshot of a density field. This can be
-  in either GADGET 1/2 or 3 format. In the example, this is set to use
+  in either GADGET 1 or 2 format. In the example, this is set to use
   the output of the previous 2LPT example, which is the GOLIAT box.
 * *MassFunctionFile*: A tabulated cumulative mass function, with columns
   {M [M_sun/h], n(>M) [(h/Mpc)^3]}. The simplest way to get a mass 
@@ -74,30 +79,38 @@ HALOGEN, apart from the input specification file itself, consists of
   with the native functionality at http://hmf.icrar.org (make sure the cosmology
   is set appropriately). However, one could just as well use a function
   measured directly in a simulation.
-* *alphaFile*: A table of mass bins and their corresponding alpha values.
-  This is the relation that defines the biasing scheme in HALOGEN, and the
+* *alphaFile*: A table of mass bins, their corresponding alpha values and the velocity
+  factor f_{vel}.
+  This is the relation that defines linear bias and the velocity bias, respectively,
+  HALOGEN, and the
   file can be produced by a fitting routine (see fitting example). The format
-  of the file should be {alpha, M [M_sun/h]}, where M is the lower limit of
-  each mass bin. VELOCITIES??
+  of the file should be {alpha, M [M_sun/h], f_{vel}}, where M is the lower limit of
+  each mass bin.
+  Note that there is an example file at ``data/M-alpha.txt``, but if you ran ``./fit``
+  you may also use the output of this ``examples/FITTING/output/M-alpha.txt``. 
 
 Besides this input data, the parameters defined in the HALOGEN.input file are
 (values for this example in [square brackets]):
 
-* *GadgetFormat*: [1]. Either 1 for Gadget 1 or 2 format, or 2 for Gadget 3
+* *GadgetFormat*: [1]. Either 1 for Gadget 1 snapshot format, or 2 for Gadget 2
   format.
 * *OutputFile* [``examples/ONLY_HALOGEN/output/GOLIAT.halos``]. The output file
   for the halo catalog.
 * *NCellsLin*: [250]. The number of cells per side of the volume used in the
   HALOGEN method. Recommended setting is such that the number of particles
   per cell is about 2^3. In principle, the higher this number is the better,
-  however, setting too high will introduce too much shot noise.
-* *recalc_frac*: [1.0]. A technical parameter of the method which sets how
-  many times the probabilities of placing haloes in cells is updated. 
+  however, setting too high could be problematic if warning messages saying 
+  "MAXTRIALS reached" start to emerge.
+* *recalc_frac*: [1.0]. A technical parameter of the method which controls how
+  many times the probabilities of placing haloes in cells is updated.
+  When the total relative error (over all cells) on the probailities
+  exceeds *recalc_frac*, the recalculation is trigered.  
   Setting to 1.0 will correspond to only updating at mass-bin boundaries,
   which has been shown to be completely adequate. THIS PARAMETER MAY BE 
   REMOVED IN FUTURE VERSIONS.
 * *nthreads*: [16]. The number of OPENMP threads to use in the placement
-  routine.
+  routine. Note that in some machines, setting this too high can make it 
+  work slowlier. 
 * *rho_ref*: [crit]. Whether to take the halo overdensity definition as compared
   to critical density, or matter density (takes values {crit,matter}). 
 * *Overdensity*: [200]. The overdensity criterion for the definition of a halo,
@@ -105,21 +118,21 @@ Besides this input data, the parameters defined in the HALOGEN.input file are
   rho_ref) the exclusion radius of each halo. Halos will not be placed within 
   each-other's exclusion radius (see also the ``-DX_EXCLUSION`` defines in 
   ``Makefile.defs``).
-* *Mmin*: [2e-4]. Sets either the minimum halo mass or total number density of 
-  the final halo catalogue. Which of these is set depends on the preprocessor
-  define ``-DDENS``.
+* *Mmin*: [2e-4]. Sets either the minimum halo mass (in [M_sun/h]) or halo number 
+  density (in [Mpc/h]^{-3}) of the final halo catalogue. 
+  Which of these is set depends on the preprocessor define ``-DDENS``.
 * *Seed*: [-1]. The random seed of the halo placement algorithm. This can be set
   to ensure reproducible results, or left at -1, in which case the actual seed
   is calculated based on the current time. If one requires several
   HALOGEN-only simulations with different seeds, be careful that the
   calculations are spread out enough to receive different seeds.
 * *Gad**: The various GADGET formatting parameters can be changed if one uses
-  snapshots of slightly different format. These will be correct in the example
-  if the HALOGEN version of 2LPT is used. 
+  snapshots of slightly different format (e.g. change of units, 64 bits ID, double precision).
+   These will be correct in the example if the HALOGEN version of 2LPT is used. 
 
 The output of the HALOGEN-only run is a single halo catalog, located at
-``output/GOLIAT.halos``, and is a table of halo positions (x,y,z), 
-velocities (vx,vy,vz), masses (Msol/h) and radii (Mpc/h).
+``output/GOLIAT.halos``, and is a table of halo positions (x,y,z) [Mpc/h], 
+velocities (vx,vy,vz) [Mpc/h], masses [M_{sun}/h] and radii [Mpc/h].
 
 Running Full HALOGEN
 --------------------
@@ -130,7 +143,10 @@ executable.
 
 To run the example, type
 
-    $ ./2LPT-HALOGEN examples/FULL_HALOGEN/GOLIAT_2LPT.input examples/FULL_HALOGEN/GOLIAT_HALOGEN.input
+    $ mpiexec -np 16 2LPT-HALOGEN examples/FULL_HALOGEN/GOLIAT_2LPT.input examples/FULL_HALOGEN/GOLIAT_HALOGEN.input
+
+The number of mpi tasks is specified after ``-np`` (16 in this example). 
+But the specific call for mpi will depend on the mpi compiler used. 
 
 Besides the two input specification files, ``2LPT-HALOGEN`` requires all of
 the input files necessary for the standalone ``2LPT`` and ``halogen``
@@ -149,5 +165,29 @@ The output should also be the same as the ``halogen`` executable (but in the
 
 Fitting
 -------
-TODO!
 
+This routine optimises the physical parameters in charge of the linear bias (alpha) and velocity bias
+(f_vel). 
+
+For running ``fit`` you should have run ``2LPT`` first or have a snapshot ready to input to this routine. 
+
+To run the example in ``FITTING`` type: 
+
+``./fit examples/FITTING/fit_GOLIAT.input``
+
+The files needed by ``fit`` are the ones needed by the standalone ``HALOGEN`` plus a reference halo catalog:
+
+* *NbodyFile**: Reference halo catalog from an N-Body simulation. ``fit`` will compute the 2PCF of this catalog
+  and fit *alpha* to match that bias. It will also compute *fvel* from the velocities here. The halos should
+  be in descending order of mass, and have the format X[Mpc/h], Y[Mpc/h], Z[Mpc/h], Vx[km/s], Vy[km/s], Vz[km/s], M[M_{sun}/h]
+
+The input parameter for ``fit`` is very similar to the one for ``halogen``. 
+The output of ``fit`` must be specified in:
+
+* *OutputDir** All the output of ``fit`` will be writen here with default names. Make sure that this directory is created, and that 
+  it is specific for this fit (otherwise, it may be overwritten). The most important file will be called "M-alpha.txt" with columns
+  {M alpha fvel}.
+
+All the variables in commom between ``fit`` and ``halogen`` should be kept the same
+when running ``fit`` and subsequently ``halogen`` with the "M-alpha.txt" a of the former.  
+The other (numerical) specific variables for ``fit`` are properly explained in the example

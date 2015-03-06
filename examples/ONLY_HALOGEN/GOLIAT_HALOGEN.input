@@ -4,7 +4,7 @@
 ######### GENERAL INPUTS ########
 
 #Full path to the density field Snapshot
-Snapshot examples/ONLY_2LPT/output/GOLIAT_snpashot
+Snapshot examples/ONLY_2LPT/output/GOLIAT_snapshot
 	
 #Gadget format (1 or 2) of Snapshot
 GadgetFormat 1
@@ -19,7 +19,8 @@ OutputFile	examples/ONLY_HALOGEN/output/GOLIAT.halos
 NCellsLin	250
 
 #Full path to the tabulated alpha(Mass) relation. Format: alpha M[M_sun/h]
-alphaFile       examples/ONLY_HALOGEN/data/M-alpha.txt
+#alphaFile       examples/FULL_HALOGEN/data/M-alpha.txt  #if you did not run ./fit, use this one (downloaded)
+alphaFile       examples/FITTING/output/GOLIAT/M-alpha.txt
 
 #Relative error allowed in CumulativeProb
 recalc_frac	1.0
