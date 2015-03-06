@@ -6,4 +6,4 @@ fit
 2LPT
 #*#
 *.h.gch
-examples/ONLY_2LPT/output/*
+examples/*/output/*

@@ -10,6 +10,10 @@ the top-level ``Makefile.defs`` according to your system
 specifications (don't touch the DEFS at this stage), and
 type ``make``.
 
+Each example is precisely the same where it overlaps with other
+examples. Each is simulating a box called the GOLIAT simulation,
+which is an L=1000, N=512 box with OmegaM = 0.27, OmegaLambda = 0.73, 
+sigma_8 = 0.8 and H0=70.0.
 
 Running pure 2LPT
 -----------------
@@ -18,16 +22,15 @@ executable. This is included to be self-contained.
 
 Included here is an example input file for the ``2LPT`` 
 executable, located in the ONLY_2LPT directory. To run it, use 
-``./2LPT examples/ONLY_2LPT/2LPT.input`` from the top-level
+``./2LPT examples/ONLY_2LPT/GOLIAT_2LPT.input`` from the top-level
 directory of HALOGEN. 
 
 TIMING??
 
 The input file for 2LPT includes settings for the boxsize and
 number of particles, and the cosmology. In the case of this 
-example, these are set to L=1 Gpc/h, N=512^3, and a cosmology with
-OmegaM = 0.27, OmegaLambda = 0.73, sigma_8 = 0.8 and H0=70.0. It also 
-includes paths to two extra files that are needed:
+example, these are set to the GOLIAT simulation specs. 
+It also includes paths to two extra files that are needed:
 
 * A glass file. The one provided in the example is for a single
   particle species located at the centre of the grid.
@@ -53,7 +56,7 @@ the output from that run which will be used as the density field
 for the example. 
 
 Running the example is done simply by ``./halogen
-examples/ONLY_HALOGEN/HALOGEN.input`` from the top-level directory
+examples/ONLY_HALOGEN/GOLIAT_HALOGEN.input`` from the top-level directory
 of HALOGEN. The input for standalone HALOGEN, apart from the input
 specification file itself, consists of three files:
 
@@ -124,7 +127,7 @@ executable.
 
 To run the example, type
 
-    $ ./2LPT-HALOGEN 2LPT.input HALOGEN.input
+    $ ./2LPT-HALOGEN examples/FULL_HALOGEN/GOLIAT_2LPT.input examples/FULL_HALOGEN/GOLIAT_HALOGEN.input
 
 Besides the two input specification files, ``2LPT-HALOGEN`` requires all of
 the input files necessary for the standalone ``2LPT`` and ``halogen``
