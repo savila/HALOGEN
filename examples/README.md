@@ -12,18 +12,20 @@ type ``make``.
 
 Each example is precisely the same where it overlaps with other
 examples. Each is simulating a box called the GOLIAT simulation,
-which is an L=1000, N=512 box with $\Omega_M$ = 0.27, 
-$\Omega_\Lambda$ = 0.73, $\sigma_8$ = 0.8 and $H_0$=70.0.
+which is an L=1000, N=512 box with OmegaM = 0.27, 
+OmegaLambda = 0.73, sigma_8 = 0.8 and H_0=70.0.
 
-Running pure 2LPT
------------------
-HALOGEN includes a fully-working standalone 2LPTic 
+Running standalone 2LPT
+-----------------------
+HALOGEN includes a fully-working standalone 2LPT 
 executable. This is included to be self-contained. 
 
-Included here is an example input file for the ``2LPT`` 
-executable, located in the ONLY_2LPT directory. To run it, use 
-``./2LPT examples/ONLY_2LPT/GOLIAT_2LPT.input`` from the top-level
-directory of HALOGEN. 
+An example input file for the ``2LPT`` executable is located 
+in the ``ONLY_2LPT`` directory. To run it, use 
+
+    $./2LPT examples/ONLY_2LPT/GOLIAT_2LPT.input
+
+from the top-level directory of HALOGEN. 
 
 TIMING??
 
@@ -32,9 +34,9 @@ number of particles, and the cosmology. In the case of this
 example, these are set to the GOLIAT simulation specs. 
 It also includes paths to two extra files that are needed:
 
-* A glass file. The one provided in the example is for a single
+* *A glass file*: The one provided in the example is for a single
   particle species located at the centre of the grid.
-* A power spectrum file. This is in the form of a table with two 
+* *A power spectrum file*: This is in the form of a table with two 
   columns, log10(k) and log10(P). Importantly, the power spectrum
   in this table includes the spectral tilt, n_s. Such a table may
   be simply downloaded using the inbuilt functionality at 
@@ -51,66 +53,67 @@ In this way, one can run many realisations of the HALOGEN-unique
 part of the process on a single density field. 
 
 To run the example, located in the ``ONLY_HALOGEN`` directory,
-make sure you first run the pure 2LPT example above, as it is
+make sure you first run the standalone 2LPT example above, as it is
 the output from that run which will be used as the density field
-for the example. 
+for this example. 
 
-Running the example is done simply by ``./halogen
-examples/ONLY_HALOGEN/GOLIAT_HALOGEN.input`` from the top-level directory
-of HALOGEN. The input for standalone HALOGEN, apart from the input
-specification file itself, consists of three files:
+Running the example is done simply with 
 
-* Snapshot: A GADGET-format snapshot of a density field. This can be
+    ./halogen examples/ONLY_HALOGEN/GOLIAT_HALOGEN.input 
+
+from the top-level directory of HALOGEN. The input for standalone 
+HALOGEN, apart from the input specification file itself, consists of 
+3 files:
+
+* *Snapshot*: A GADGET-format snapshot of a density field. This can be
   in either GADGET 1/2 or 3 format. In the example, this is set to use
-  the output of the previous 2LPT example, and is a box of L=1000 and 
-  N=512.
-* MassFunctionFile: A tabulated cumulative mass function, with columns
+  the output of the previous 2LPT example, which is the GOLIAT box.
+* *MassFunctionFile*: A tabulated cumulative mass function, with columns
   {M [M_sun/h], n(>M) [(h/Mpc)^3]}. The simplest way to get a mass 
   function is to use a fit from the literature. This can be easily done
-  with the native functionality at hmf.icrar.org (make sure the cosmology
+  with the native functionality at http://hmf.icrar.org (make sure the cosmology
   is set appropriately). However, one could just as well use a function
   measured directly in a simulation.
-* alphaFile: A table of mass bins and their corresponding alpha values.
+* *alphaFile*: A table of mass bins and their corresponding alpha values.
   This is the relation that defines the biasing scheme in HALOGEN, and the
-  file can be produced by a fitting routine (see next example). The format
+  file can be produced by a fitting routine (see fitting example). The format
   of the file should be {alpha, M [M_sun/h]}, where M is the lower limit of
   each mass bin. VELOCITIES??
 
 Besides this input data, the parameters defined in the HALOGEN.input file are
 (values for this example in [square brackets]):
 
-* GadgetFormat: [1]. Either 1 for Gadget 1 or 2 format, or 2 for Gadget 3
+* *GadgetFormat*: [1]. Either 1 for Gadget 1 or 2 format, or 2 for Gadget 3
   format.
-* OutputFile [examples/ONLY_HALOGEN/output/GOLIAT.halos]. The output file
+* *OutputFile* [``examples/ONLY_HALOGEN/output/GOLIAT.halos``]. The output file
   for the halo catalog.
-* NCellsLin: [250]. The number of cells per side of the volume used in the
+* *NCellsLin*: [250]. The number of cells per side of the volume used in the
   HALOGEN method. Recommended setting is such that the number of particles
   per cell is about 2^3. In principle, the higher this number is the better,
   however, setting too high will introduce too much shot noise.
-* Beta: ?????
-* vel_fact: ?????
-* recalc_frac: [1.0]. A technical parameter of the method which sets how
+* *recalc_frac*: [1.0]. A technical parameter of the method which sets how
   many times the probabilities of placing haloes in cells is updated. 
   Setting to 1.0 will correspond to only updating at mass-bin boundaries,
   which has been shown to be completely adequate. THIS PARAMETER MAY BE 
   REMOVED IN FUTURE VERSIONS.
-* nthreads: [16]. The number of OPENMP threads to use in the placement
+* *nthreads*: [16]. The number of OPENMP threads to use in the placement
   routine.
-* rho_ref: [crit]. Whether to take the halo overdensity definition as compared
+* *rho_ref*: [crit]. Whether to take the halo overdensity definition as compared
   to critical density, or matter density (takes values {crit,matter}). 
-* Overdensity: [200]. The overdensity criterion for the definition of a halo,
+* *Overdensity*: [200]. The overdensity criterion for the definition of a halo,
   R = ((3 M)/(4\pi rho_ref *Overdensity))^(1/3). This affects (together with 
   rho_ref) the exclusion radius of each halo. Halos will not be placed within 
-  each-others exclusion radius (see also the -DX_EXCLUSION defines in Makefile.defs).
-* Mmin: [2e-4]. Sets either the minimum halo mass or total number density of 
+  each-other's exclusion radius (see also the ``-DX_EXCLUSION`` defines in 
+  ``Makefile.defs``).
+* *Mmin*: [2e-4]. Sets either the minimum halo mass or total number density of 
   the final halo catalogue. Which of these is set depends on the preprocessor
-  define -DDENS.
-* Seed: [-1]. The random seed of the halo placement algorithm. This can be set
+  define ``-DDENS``.
+* *Seed*: [-1]. The random seed of the halo placement algorithm. This can be set
   to ensure reproducible results, or left at -1, in which case the actual seed
   is calculated based on the current time. If one requires several
-  halogen-only simulations with different seeds, be careful that the
+  HALOGEN-only simulations with different seeds, be careful that the
   calculations are spread out enough to receive different seeds.
-* Gad*: The various GADGET formatting parameters can be changed if one uses
+* *Gad**: The various GADGET formatting parameters can be changed if one uses
   snapshots of slightly different format. These will be correct in the example
   if the HALOGEN version of 2LPT is used. 
 
@@ -120,7 +123,7 @@ velocities (vx,vy,vz), masses (Msol/h) and radii (Mpc/h).
 
 Running Full HALOGEN
 --------------------
-The most common usage of HALOGEN will be to merge the ``2LPT` and ``HALOGEN``
+The most common usage of HALOGEN will be to merge the ``2LPT`` and ``halogen``
 components into one step, mitigating the expensive IO of writing the snapshot
 to file. This is possible by using the ``2LPT-HALOGEN``
 executable. 
@@ -141,7 +144,7 @@ Snapshot, GadgetFormat and Gad* parameters in the HALOGEN.input file, and the
 output file parameter in the 2LPT.input).
 
 The output should also be the same as the ``halogen`` executable (but in the 
-FULL_HALOGEN subdirectory).
+``FULL_HALOGEN`` subdirectory).
 
 
 Fitting
