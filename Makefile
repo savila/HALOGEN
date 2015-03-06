@@ -1,5 +1,12 @@
 EXEC   = 2LPT-HALOGEN
 
+all: 	
+	$(MAKE) -C src all
+	mv -f src/$(EXEC) $(EXEC)
+	mv -f src/2LPT 2LPT
+	mv -f src/halogen halogen
+	mv -f src/fit fit
+
 $(EXEC):
 		$(MAKE) -C src $(EXEC);\
 		mv -f src/$(EXEC) $(EXEC)

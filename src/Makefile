@@ -1,10 +1,14 @@
 include ../Makefile.defs
-
+MAKEALL=0
 EXEC   = 2LPT-HALOGEN
 
 ###### DEFINE OBJECT CATEGORIES
 CUTE_OBJ    = $(addprefix cute.src/,common.o define.o io.o neighbors.o correlator.o)
-2LPT_OBJ   = power.o allvars.o read_param.o read_glass.o save.o $(addprefix nrsrc/,nrutil.o qromb.o polint.o trapzd.o) 
+
+# objects that can be either 2lpt-only or not
+2LPT_ONLY_OBJ = allvars.o read_param.o read_glass.o save.o
+2LPT_OBJ   = power.o $(2LPT_ONLY_OBJ) $(addprefix nrsrc/,nrutil.o qromb.o polint.o trapzd.o) 
+
 HLGN_OBJ   = read_snapshot.o place_halos.o populate_mass_function.o
 FIT_OBJ    = $(HLGN_OBJ) correlate.o
 ALL_OBJ    = $(CUTE_OBJ) $(2LPT_OBJ) $(FIT_OBJ)
@@ -20,6 +24,10 @@ ALL_INCL = $(FFTW_INCL) $(GSL_INCL)
 ALL_LIB  = $(FFTW_LIB) $(GSL_LIB) $(OTHER_LIB)
 
 ###### RULES
+all: $(EXEC) halogen fit
+	-rm $(2LPT_ONLY_OBJ)
+	$(MAKE) 2LPT
+
 $(EXEC): main.c $(2LPT_OBJ) $(HLGN_OBJ) 
 	$(CCMPI) $(CFLAGS) $(DEFS) $(2LPT_OBJ) $(HLGN_OBJ) main.c $(ALL_INCL) $(ALL_LIB)  -o  $(EXEC)  
 
@@ -29,7 +37,7 @@ $(2LPT_OBJ): %.o : %.c $(2LPT_INCL)
 2LPT: DEFS+=-DONLY_2LPT
 2LPT: 2LPT.c $(2LPT_OBJ) $(2LPT_INCL)
 	$(CCMPI) $(CFLAGS) $(DEFS) $(2LPTOPTS) $(2LPT_OBJ) 2LPT.c $(ALL_INCL) $(ALL_LIB)  -o  2LPT  
-
+	-rm $(2LPT_ONLY_OBJ)
 
 halogen:	halogen.c $(HLGN_OBJ) $(HLGN_OBJ:o=h)
 	$(CC) $(CFLAGS) $(DEFS) halogen.c $(HLGN_OBJ) $(OTHER_LIB) -o halogen

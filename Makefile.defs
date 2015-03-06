@@ -10,7 +10,7 @@ CCMPI     =  cc
 CC        =  cc
 MPICHLIB  = #path 
 
-CFLAGS  = -03 -Wall -fopenmp  # other cflags (optimization, warnings,openmp etc.)
+CFLAGS  = -O3 -Wall -fopenmp  # other cflags (optimization, warnings,openmp etc.)
 ###############################################################
 
 # //******   HALOGEN DEFINE OPTIONS ************** //
