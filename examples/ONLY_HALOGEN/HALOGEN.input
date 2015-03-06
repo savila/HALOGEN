@@ -3,23 +3,23 @@
 
 ######### GENERAL INPUTS ########
 
-#Full path to the (2LPT) Snapshot
-Snapshot /bigdata/savila/2LPT/2LPTnonlocal_public/outputs/j1Gpc/2LPT/j1Gpc.z0.000.N0
+#Full path to the density field Snapshot
+Snapshot examples/ONLY_2LPT/output/GOLIAT_snpashot
 	
 #Gadget format (1 or 2) of Snapshot
 GadgetFormat 1
 
 #Full path to the tabulated cumulative density function n(>M). Format: M[M_sun/h] n[(h/Mpc)^3]
-MassFunctionFile	input/HMF_JUB-Behroozi_z0.0.dat
+MassFunctionFile	examples/ONLY_HALOGEN/data/HMF_Behroozi_z0.0.dat
 
 #Full Path to the output
-OutputFile	output/j1Gp_z0.00_WN_n2e-4_l4_run0.halos
+OutputFile	examples/ONLY_HALOGEN/output/GOLIAT.halos
 
 #Number of Cells per side of the grid used (lcell=Lbox/NCellsLin)
 NCellsLin	250
 
 #Full path to the tabulated alpha(Mass) relation. Format: alpha M[M_sun/h]
-alphaFile       ../v0.8.1/fit_output/j1Gp_N512_z0.00_WN_l4/M-alpha.txt
+alphaFile       examples/ONLY_HALOGEN/data/M-alpha.txt
 
 #Beta (-1.0 for beta=alpha)
 Beta		0.0
