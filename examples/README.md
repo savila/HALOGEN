@@ -7,7 +7,7 @@ Each example is completely self-contained in its own directory.
 To compile the relevant executables for these examples, edit
 the top-level ``Makefile.defs`` according to your system
 specifications (don't touch the ``DEFS`` at this stage), and
-type ``make``.
+type ``make all`` to make all the executables at once.
 
 Each example is precisely the same where it overlaps with other
 examples. Each is simulating a box called the GOLIAT simulation,
@@ -17,7 +17,8 @@ OmegaLambda = 0.73, sigma_8 = 0.8 and H_0=70.0.
 Running standalone 2LPT
 -----------------------
 HALOGEN includes a fully-working standalone 2LPT 
-executable. This is included to be self-contained. 
+executable. This is included to be self-contained.
+To compile the standalone 2LPT type ``make 2LPT``. 
 
 An example input file for the ``2LPT`` executable is located 
 in the ``ONLY_2LPT`` directory. To run it, use 
@@ -54,7 +55,7 @@ study how halogen parameters affect the output without changing
 the density field. And it can also be used with other density 
 fields different from 2LPT.
 
-To compile the standalone HALOGEN executable, type i ``make 
+To compile the standalone HALOGEN executable, type ``make 
 halogen``.
 
 To run the example, located in the ``ONLY_HALOGEN`` directory,
@@ -87,7 +88,7 @@ HALOGEN, apart from the input specification file itself, consists of
   of the file should be {alpha, M [M_sun/h], f_{vel}}, where M is the lower limit of
   each mass bin.
   Note that there is an example file at ``data/M-alpha.txt``, but if you ran ``./fit``
-  you may also use the output of this ``examples/FITTING/output/M-alpha.txt``. 
+  you may also use the output of this ``examples/FITTING/output/GOLIAT/M-alpha.txt``. 
 
 Besides this input data, the parameters defined in the HALOGEN.input file are
 (values for this example in [square brackets]):
@@ -99,7 +100,7 @@ Besides this input data, the parameters defined in the HALOGEN.input file are
 * *NCellsLin*: [250]. The number of cells per side of the volume used in the
   HALOGEN method. Recommended setting is such that the number of particles
   per cell is about 2^3. In principle, the higher this number is the better,
-  however, setting too high could be problematic if warning messages saying 
+  however, setting it too high could be problematic if warning messages saying 
   "MAXTRIALS reached" start to emerge.
 * *recalc_frac*: [1.0]. A technical parameter of the method which controls how
   many times the probabilities of placing haloes in cells is updated.
@@ -120,7 +121,7 @@ Besides this input data, the parameters defined in the HALOGEN.input file are
   ``Makefile.defs``).
 * *Mmin*: [2e-4]. Sets either the minimum halo mass (in [M_sun/h]) or halo number 
   density (in [Mpc/h]^{-3}) of the final halo catalogue. 
-  Which of these is set depends on the preprocessor define ``-DDENS``.
+  Which of these is set depends on the preprocessor define ``-DNDENS``.
 * *Seed*: [-1]. The random seed of the halo placement algorithm. This can be set
   to ensure reproducible results, or left at -1, in which case the actual seed
   is calculated based on the current time. If one requires several
@@ -139,7 +140,7 @@ Running Full HALOGEN
 The most common usage of HALOGEN will be to merge the ``2LPT`` and ``halogen``
 components into one step, mitigating the expensive IO of writing the snapshot
 to file. This is possible by using the ``2LPT-HALOGEN``
-executable. 
+executable. Type ``make`` to compile it.  
 
 To run the example, type
 
@@ -177,17 +178,17 @@ To run the example in ``FITTING`` type:
 
 The files needed by ``fit`` are the ones needed by the standalone ``HALOGEN`` plus a reference halo catalog:
 
-* *NbodyFile**: Reference halo catalog from an N-Body simulation. ``fit`` will compute the 2PCF of this catalog
+* *NbodyFile*: Reference halo catalog from an N-Body simulation. ``fit`` will compute the 2PCF of this catalog
   and fit *alpha* to match that bias. It will also compute *fvel* from the velocities here. The halos should
   be in descending order of mass, and have the format X[Mpc/h], Y[Mpc/h], Z[Mpc/h], Vx[km/s], Vy[km/s], Vz[km/s], M[M_{sun}/h]
 
 The input parameter for ``fit`` is very similar to the one for ``halogen``. 
 The output of ``fit`` must be specified in:
 
-* *OutputDir** All the output of ``fit`` will be writen here with default names. Make sure that this directory is created, and that 
+* *OutputDir* All the output of ``fit`` will be writen here with default names. Make sure that this directory is created, and that 
   it is specific for this fit (otherwise, it may be overwritten). The most important file will be called "M-alpha.txt" with columns
   {M alpha fvel}.
 
 All the variables in commom between ``fit`` and ``halogen`` should be kept the same
-when running ``fit`` and subsequently ``halogen`` with the "M-alpha.txt" a of the former.  
+when running ``fit`` and subsequently ``halogen`` (or ``2LPT-HALOGEN``) with the "M-alpha.txt" a of the former.  
 The other (numerical) specific variables for ``fit`` are properly explained in the example
