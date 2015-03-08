@@ -10,7 +10,7 @@ Snapshot examples/ONLY_2LPT/output/GOLIAT_snapshot
 GadgetFormat 1
 
 #Full path to the tabulated cumulative density function n(>M). Format: M[M_sun/h] n[(h/Mpc)^3]
-MassFunctionFile	examples/FITTING/data/HMF_JUB-Behroozi_z0.0.dat
+MassFunctionFile	examples/FITTING/data/HMF_Behroozi_z0.0.dat
 
 #Number of Cells per side of the grid used
 NCellsLin	250

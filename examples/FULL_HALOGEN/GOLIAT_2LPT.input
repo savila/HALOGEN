@@ -52,7 +52,7 @@ InputSpectrum_UnitLength_in_cm  3.085678e24 % defines length unit of tabulated
                                             % Note: This can be chosen different from UnitLength_in_cm
     
 
-%ShapeGamma       0.21     % only needed for Efstathiou power spectrum 
+ShapeGamma       0.21     % only needed for Efstathiou power spectrum 
 
 
 Seed             1681293445    %  Seed for IC-generator

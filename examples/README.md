@@ -43,7 +43,7 @@ It also includes paths to two extra files that are needed:
   hmf.icrar.org.
 
 As set up, the output of the run will go into the ``output/``
-subdirectory, and will contain a single density field snapshot,
+subdirectory, and will contain a density field snapshot,
 in GADGET format, at z=0.
 
 Running standalone HALOGEN
@@ -86,7 +86,7 @@ HALOGEN, apart from the input specification file itself, consists of
   HALOGEN. The file can be produced by a fitting routine (see fitting example). The format
   of the file should be {alpha, M [M_sun/h], f_{vel}}, where M is the lower limit of
   each mass bin.
-  Note that there is an example file at ``data/M-alpha.txt``, but if you ran ``./fit``
+  Note that there is an example file at ``examples/FULL_HALOGEN/data/M-alpha.txt``, but if you ran ``./fit``
   you may also use the output of this ``examples/FITTING/output/GOLIAT/M-alpha.txt``. 
 
 Besides this input data, the parameters defined in the HALOGEN.input file are

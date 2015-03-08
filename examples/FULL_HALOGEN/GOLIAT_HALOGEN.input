@@ -14,8 +14,8 @@ OutputFile	examples/FULL_HALOGEN/output/GOLIAT.halos
 NCellsLin	250
 
 #Full path to the tabulated alpha(Mass) relation. Format: alpha M[M_sun/h]
-#alphaFile       examples/FULL_HALOGEN/data/M-alpha.txt  #if you did not run ./fit, use this one (downloaded)
-alphaFile       examples/FITTING/output/GOLIAT/M-alpha.txt
+alphaFile       examples/FULL_HALOGEN/data/M-alpha.txt  #if you did not run ./fit, use this one (downloaded)
+#alphaFile       examples/FITTING/output/GOLIAT/M-alpha.txt
 
 #Relative error allowed in CumulativeProb
 recalc_frac	1.0
