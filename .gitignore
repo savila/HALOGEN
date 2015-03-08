@@ -7,5 +7,7 @@ fit
 #*#
 *.h.gch
 examples/*/output/*halos
-examples/*/output/*GOLIAT*
+examples/FULL_HALOGEN/output/*GOLIAT*
+examples/ONLY_HALOGEN/output/*GOLIAT*
+examples/ONLY_2LPT/output/*GOLIAT*
 examples/*/output/*snap*
