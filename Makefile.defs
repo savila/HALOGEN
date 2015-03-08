@@ -1,16 +1,25 @@
 ###############################################################
 # SYSTEM-SPECIFIC COMPILATION OPTIONS
 ###############################################################
+
+#Please, configure this options accordingly to your system
+
+#GSL_DIR   = 
+#FFTW_DIR  = 
+
 GSL_INCL  =  -I$(GSL_DIR)/include
 GSL_LIBS  = -L$(GSL_DIR)/lib
-FFTW_LIBS = $(FFTW_POST_LINK_OPTS)
-FFTW_INCL = $(FFTW_INCLUDE_OPTS)
+FFTW_LIBS = -I$(FFTW_DIR)/include
+FFTW_INCL = -L$(FFTW_DIR)/lib
 
-CCMPI     =  cc
-CC        =  cc
+
+CCMPI     =  mpicc
+CC        =  gcc
 MPICHLIB  = #path 
 
 CFLAGS  = -O3 -Wall -fopenmp  # other cflags (optimization, warnings,openmp etc.)
+
+
 ###############################################################
 
 # //******   HALOGEN DEFINE OPTIONS ************** //
@@ -33,15 +42,14 @@ DEFS           +=      -DVERB				#Add some comments to cross-check.
 
 #DEFS		+=	-DRANKED			#At each time the most masive halo to place is set in the most massive cell available
 
-#DEFS		+=	-DNO_PROB_PARALLEL		#Probabilities computed in serial
+DEFS		+=	-DNO_PROB_PARALLEL		#Probabilities computed in serial
 
 
 #*** Flags only for "fit" ***
 #DEFS		+=	-DREL_CHI2			#chi2=((NB-Hlgn)/NB))^2
 #DEFS        	+=  	-DALLOUT                        #write out a heap more in fitting
 #DEFS		+=	-DMASS_CUTS_FIT			#Use mass cuts instead of number cuts for the fit 
-DEFS		+=	-DNO_PROB_PARALEL		#Fit parallel
-#DEFS		+=	-DNO_PAR_FIT		      	#Fit serial
+#DEFS		+=	-DNO_PAR_FIT		      	#Fit serial. For the fit, either this flag (-DNO_PAR_FIT) or "-DNO_PROB_PARALLEL" should be switched on (preferably the latter).
 
 
 # //******   OPTIONS FOR 2LPT ************** //

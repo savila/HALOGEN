@@ -6,4 +6,5 @@ fit
 2LPT
 #*#
 *.h.gch
-examples/*/output/*
+examples/*/output/*halos
+examples/*/output/*GOLIAT*
