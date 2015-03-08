@@ -82,9 +82,8 @@ HALOGEN, apart from the input specification file itself, consists of
   measured directly in a simulation.
 * *alphaFile*: A table of mass bins, their corresponding alpha values and the velocity
   factor f_{vel}.
-  This is the relation that defines linear bias and the velocity bias, respectively,
-  HALOGEN, and the
-  file can be produced by a fitting routine (see fitting example). The format
+  This is the relation that defines linear bias and the velocity bias, respectively, in
+  HALOGEN. The file can be produced by a fitting routine (see fitting example). The format
   of the file should be {alpha, M [M_sun/h], f_{vel}}, where M is the lower limit of
   each mass bin.
   Note that there is an example file at ``data/M-alpha.txt``, but if you ran ``./fit``
