@@ -46,7 +46,7 @@ GadLong		0
 NbodyFile examples/FITTING/data/AHF_GOLIAT_z0.0_main_halos 
 
 #Full Path to the output
-OutputDir	examples/FITING/output/GOLIAT
+OutputDir	examples/FITTING/output/GOLIAT
 
 #Fitting range in r for the 2PCF
 nr              6	#number of r bins used in the chi2-fit
