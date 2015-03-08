@@ -8,3 +8,4 @@ fit
 *.h.gch
 examples/*/output/*halos
 examples/*/output/*GOLIAT*
+examples/*/output/*snap*
