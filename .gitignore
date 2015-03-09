@@ -4,7 +4,7 @@
 halogen
 fit
 2LPT
-#*#
+*#*#
 *.h.gch
 examples/*/output/*halos
 examples/FULL_HALOGEN/output/*GOLIAT*

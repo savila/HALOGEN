@@ -1,5 +1,4 @@
 include ../Makefile.defs
-MAKEALL=0
 EXEC   = 2LPT-HALOGEN
 
 ###### DEFINE OBJECT CATEGORIES

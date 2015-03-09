@@ -7,7 +7,7 @@ Each example is completely self-contained in its own directory.
 To compile the relevant executables for these examples, edit
 the top-level ``Makefile.defs`` according to your system
 specifications (don't touch the ``DEFS`` at this stage), and
-type ``make all`` to make all the executables at once.
+type ``make`` to make all the executables at once.
 
 Each example is precisely the same where it overlaps with other
 examples. Each is simulating a box called the GOLIAT simulation,
@@ -139,7 +139,7 @@ Running Full HALOGEN
 The most common usage of HALOGEN will be to merge the ``2LPT`` and ``halogen``
 components into one step, mitigating the expensive IO of writing the snapshot
 to file. This is possible by using the ``2LPT-HALOGEN``
-executable. Type ``make`` to compile it.  
+executable. Type ``make 2LPT-HALOGEN`` to compile it.  
 
 To run the example, type
 
@@ -166,7 +166,7 @@ The output should also be the same as the ``halogen`` executable (but in the
 Fitting
 -------
 
-This routine optimises the physical parameters in charge of the linear bias (alpha) and velocity bias
+This routine optimises the parameters which control the linear bias (alpha) and velocity bias
 (f_vel). 
 
 For running ``fit`` you should have run ``2LPT`` first or have a snapshot ready to input to this routine. 
@@ -181,13 +181,17 @@ The files needed by ``fit`` are the ones needed by the standalone ``HALOGEN`` pl
   and fit *alpha* to match that bias. It will also compute *fvel* from the velocities here. The halos should
   be in descending order of mass, and have the format X[Mpc/h], Y[Mpc/h], Z[Mpc/h], Vx[km/s], Vy[km/s], Vz[km/s], M[M_{sun}/h]
 
-The input parameter for ``fit`` is very similar to the one for ``halogen``. 
-The output of ``fit`` must be specified in:
+The input parameters for ``fit`` are very similar to those for ``halogen``. 
+In addition, the output of ``fit`` must be specified in:
 
 * *OutputDir* All the output of ``fit`` will be writen here with default names. Make sure that this directory is created, and that 
   it is specific for this fit (otherwise, it may be overwritten). The most important file will be called "M-alpha.txt" with columns
   {M alpha fvel}.
 
 All the variables in commom between ``fit`` and ``halogen`` should be kept the same
-when running ``fit`` and subsequently ``halogen`` (or ``2LPT-HALOGEN``) with the "M-alpha.txt" a of the former.  
-The other (numerical) specific variables for ``fit`` are properly explained in the example
+when running ``fit`` and subsequently ``halogen`` (or ``2LPT-HALOGEN``) with
+the "M-alpha.txt" a of the former (several of them, if changed, would require
+a re-fit specific to those parameters).
+ 
+The other (numerical) specific variables for ``fit`` are properly explained in
+the example input file.

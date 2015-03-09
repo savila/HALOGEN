@@ -5,11 +5,6 @@ HALOGEN
 HALOGEN is a C program for creating realistic synthetic dark matter halo catalogs 
 in a flash. 
 
-It uses a statistical approach for generating the masses of the halos from a 
-parameterised halo mass distribution, and placing them down in a spatial 
-distribution with cheap 2LPT field as scaffolding (using a single-parameter
-bias parameterisation).
-
 It decomposes the problem of generating cosmological tracer distributions
 (eg. halos) into four steps:
 * Generating an approximate density field;
@@ -52,7 +47,9 @@ Usage
 -----
 The primary usage is by using the fully combined executable, and simply runs
 as
+
     $ 2LPT-HALOGEN <2LPT.input> <HALOGEN.input>
+
 For details on the parameters in the input files, and how to run the other 
 executables, see the README file in the ``examples/`` directory.
 
