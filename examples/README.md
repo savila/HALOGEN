@@ -27,7 +27,9 @@ in the ``ONLY_2LPT`` directory. To run it, use
 
 from the top-level directory of HALOGEN. The number of mpi tasks
 is specified after ``-np`` (16 in this example). But the specific
-call for mpi will depend on the mpi compiler used.   
+call for mpi will depend on the mpi compiler used. **NOTE:** the 
+setting ``NumFilesWrittenInParallel`` must be set less or equal to
+the ``np`` setting here.   
 
 The input file for 2LPT includes settings for the boxsize and
 number of particles, and the cosmology. In the case of this 
