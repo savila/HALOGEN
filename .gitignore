@@ -11,3 +11,4 @@ examples/FULL_HALOGEN/output/*GOLIAT*
 examples/ONLY_HALOGEN/output/*GOLIAT*
 examples/ONLY_2LPT/output/*GOLIAT*
 examples/*/output/*snap*
+examples/FITTING/output/GOLIAT/*
