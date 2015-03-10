@@ -389,8 +389,8 @@ int read_snapshot(char *infile_name, int format, float lunit, float munit, int s
       	t5=time(NULL);
 	//Distributing Particles
         //#pragma omp parallel for private(i_gadget_file,ipart,i,k,j,lin_ijk,ii) shared(PartPerFile,invL,NCells,ListOfPart,count,out_x,out_z,out_y,out_vx,out_vz,out_vy,file_x,file_y,file_z,file_vx,file_vy,file_vz,stderr,gadget,no_gadget_files) default(none)
-      	for(i_gadget_file=0; i_gadget_file<no_gadget_files; i_gadget_file++)
-        for (ii=0;ii<PartPerFile[i_gadget_file];ii++) {
+      	for(i_gadget_file=0; i_gadget_file<no_gadget_files; i_gadget_file++){
+           for (ii=0;ii<PartPerFile[i_gadget_file];ii++) {
                 i = (long) (invL * file_x[i_gadget_file][ii]*NCells);
                 j = (long) (invL * file_y[i_gadget_file][ii]*NCells);
                 k = (long) (invL * file_z[i_gadget_file][ii]*NCells);
@@ -409,7 +409,20 @@ int read_snapshot(char *infile_name, int format, float lunit, float munit, int s
                 (*ListOfPart)[lin_ijk][count[lin_ijk]] = ipart;
                 count[lin_ijk]++;
 		ipart++;
+	   }
+	   free(file_x[i_gadget_file]);	
+	   free(file_y[i_gadget_file]);	
+	   free(file_z[i_gadget_file]);	
+	   free(file_vx[i_gadget_file]);	
+	   free(file_vy[i_gadget_file]);	
+	   free(file_vz[i_gadget_file]);	
         }
+	free(file_x);
+	free(file_y);	
+	free(file_z);
+	free(file_vx);
+	free(file_vy);
+	free(file_vz);	
 
 	#ifdef DEBUG
         fprintf(stderr,"\t Particles Distributed \n\n");	

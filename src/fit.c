@@ -96,6 +96,7 @@ char OutputNbody2PCF[LINELENGTH];
 char OutputHalogen2PCF[LINELENGTH];
 char OutputHalogenErr[LINELENGTH];
 char OutputAlphaM[LINELENGTH];
+char OutputExampleCat[LINELENGTH];
 
 //--------------- FITTING PARAMETERS -------------------------------------------
 gsl_bspline_workspace *bw;
@@ -118,6 +119,8 @@ int get_nbody_2pcf(float *, float *, float *, float *, long);
 double minimize(double,double,double);
 float * compute_fvel(float *vx,float *vy,float *vz,float *nbvx,float *nbvy,float *nbvz,float *nbm);
 float vel_std(float *x, float* y, float*z, long start, long end);
+float vel_1D_std(float *x,int start, int end);
+int write_halogen_cat(char *, float *, float *, float *, float *, float *, float *, float *, float *,long);
 /*=============================================================================
  *                              MAIN()
  *=============================================================================*/
@@ -138,7 +141,7 @@ int main(int argc, char **argv){
 	}
 
 	char inname[256];
-	float *hx, *hy, *hz, *hR;
+	float *hx, *hy, *hz, *hvx, *hvy, *hvz, *hR;
 	strcpy(inname,argv[1]);
 	double dr;
 	double **halogen_2pcf, **halogen_err;
@@ -196,11 +199,13 @@ int main(int argc, char **argv){
 	strcpy(OutputHalogen2PCF,OutputDir);
 	strcpy(OutputHalogenErr,OutputDir);
 	strcpy(OutputAlphaM,OutputDir);
+	strcpy(OutputExampleCat,OutputDir);
 
 	strcat(OutputNbody2PCF,"/nbody.2pcf");
 	strcat(OutputHalogen2PCF,"/halogen.2pcf");
 	strcat(OutputHalogenErr,"/halogen.err");
 	strcat(OutputAlphaM,"/M-alpha.txt");
+	strcat(OutputExampleCat,"/example.halos");
 
 	fprintf(stderr,"Reading Gadget file(s)...\n");
 	if (read_snapshot(Snapshot, format, LUNIT, MUNIT, SWP, LGADGET, DGADGET,Nlin,&x, &y, &z, &vx, &vy, &vz, &Npart, &mpart, &Lbox, &om_m,&ListOfParticles,&NPartPerCell)==0)
@@ -264,20 +269,6 @@ int main(int argc, char **argv){
 	nb_n = read_nbody(&nbx,&nby,&nbz,&nbvx,&nbvy,&nbvz,&nbm);
 	fprintf(stderr,"READ IT IN\n");
 	
-	fprintf(stderr,"\tComputing velocity bias fvel...\n");
-	fvel = compute_fvel(vx,vy,vz,nbvx,nbvy,nbvz,nbm);	
-	free(vx);
-	free(vy);
-	free(vz);
-	free(nbvx);
-	free(nbvy);
-	free(nbvz);
-
-	#ifdef VERB
-	for (ii=0;ii<Nalpha;ii++)
-		fprintf(stderr,"\t\tfvel[%ld]=%f\n",ii,fvel[ii]);
-	#endif
-	fprintf(stderr,"\t...done!\n");
 	
 
 	// Get the Nbody 2PCF
@@ -299,17 +290,30 @@ int main(int argc, char **argv){
 	hx = (float *) calloc(Nhalos,sizeof(float));
 	hy = (float *) calloc(Nhalos,sizeof(float));
 	hz = (float *) calloc(Nhalos,sizeof(float));
+	hvx = (float *) calloc(Nhalos,sizeof(float));
+	hvy = (float *) calloc(Nhalos,sizeof(float));
+	hvz = (float *) calloc(Nhalos,sizeof(float));
 	hR = (float *) calloc(Nhalos,sizeof(float));
 
 
 	seed++;
 
 	// Do a final placement with the correct alphavec
-	place_halos(Nhalos,HaloMass, Nlin, Npart, x, y, z, NULL,NULL,NULL,Lbox,
+	place_halos(Nhalos,HaloMass, Nlin, Npart, x, y, z, vx,vy,vz,Lbox,
 				rho,seed,
 				mpart,nthreads, alphavec, betavec, mcuts, Nalpha, recalc_frac,hx, hy, hz,
-				NULL,NULL,NULL, hR,ListOfParticles,NPartPerCell);
+				hvx,hvy,hvz, hR,ListOfParticles,NPartPerCell);
 		
+	fprintf(stderr,"\tComputing velocity bias fvel...\n");
+	fvel = compute_fvel(hvx,hvy,hvz,nbvx,nbvy,nbvz,nbm);	
+	free(nbvx);
+	free(nbvy);
+	free(nbvz);
+	#ifdef VERB
+	for (ii=0;ii<Nalpha;ii++)
+		fprintf(stderr,"\t\tfvel[%ld]=%f\n",ii,fvel[ii]);
+	#endif
+	fprintf(stderr,"\t...done!\n");
 	// ALLOCATE the halogen_2pcf array
 	halogen_2pcf = (double **) calloc(Nalpha,sizeof(double *));
 	halogen_err = (double **) calloc(Nalpha,sizeof(double *));
@@ -370,9 +374,15 @@ int main(int argc, char **argv){
 		free((halogen_2pcf)[ii]);
 		free((halogen_err)[ii]);
 	}
+	fprintf(stderr,"Writing an example halo catalog to %s\n",OutputExampleCat);
+	write_halogen_cat(OutputExampleCat, hx, hy, hz, hvx, hvy,hvz, HaloMass, hR,Nhalos);
+	fprintf(stderr,"...done!\n");
 	free(halogen_2pcf);
 	free(halogen_err);
 	free(dd);	
+	free(hvx);
+	free(hvy);
+	free(hvz);
 	free(hx);	
 	free(hy);	
 	free(hz);	
@@ -564,7 +574,12 @@ float * compute_fvel(float *vx,float *vy,float *vz,float *nbvx,float *nbvy,float
                 }
 
 	#endif
+		#ifdef FVEL_X 
+		vbias[ii]=vel_1D_std(nbvx,Nstart,Nend)/vel_1D_std(vx,Nstart,Nend);
+		#else	
 		vbias[ii]=vel_std(nbvx,nbvy,nbvz,Nstart,Nend)/vel_std(vx,vy,vz,Nstart,Nend);	
+		#endif
+		fprintf(stderr,"\t\tfvel[%ld]=%f\n",ii,vbias[ii]);
 	}
 	return vbias;
 }
@@ -587,6 +602,21 @@ float vel_std(float *x, float* y, float*z, long start, long end){
 	return std;
 }
 
+float vel_1D_std(float *vector, int min, int max){
+	int i;
+	float mu=0., sigma=0.;
+
+	for (i=min;i<max;i++){
+		mu+=vector[i];
+		sigma+=(vector[i]*vector[i]);
+	}
+	mu = (float) mu/(max-min);
+	sigma = (float) sigma/(max-min);
+	#ifdef DEBUG
+	fprintf(stderr,"\tfinit=%f, fend=%f, fmean=%f, sigma=%f\n",vector[min],vector[max],mu,sqrt(sigma-mu*mu));
+	#endif
+	return sqrt(sigma-mu*mu);
+}
 
 /*=============================================================================
  *                              GET NBODY_2PCF
@@ -1469,3 +1499,17 @@ int read_input_file(char *name){
 
 
 
+int write_halogen_cat(char *filename, float *x, float *y, float *z, float *vx, float *vy, float *vz, float *M, float *R,long N){
+	FILE *f;
+	long i;
+
+	if ((f=fopen(filename,"w") )== NULL){
+		fprintf(stderr,"Couldnt open output file %s\n",filename);
+		return -1;
+	}
+	for(i=0;i<N;i++){
+		fprintf(f,"%f %f %f %f %f %f %e %f\n",x[i],y[i],z[i],vx[i],vy[i],vz[i],M[i],R[i]);
+	}
+	fclose(f);
+	return 0;
+}

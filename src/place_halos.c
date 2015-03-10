@@ -7,8 +7,6 @@ HALOGEN has been developped by Santiago Avila and Steven Murray
 (https://github.com/savila/HALOGEN).
 ************************************************************************************ */
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
