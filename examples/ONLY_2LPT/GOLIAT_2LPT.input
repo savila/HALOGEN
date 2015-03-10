@@ -57,8 +57,8 @@ ShapeGamma       0.21     % only needed for Efstathiou power spectrum
 Seed             1681293445    %  Seed for IC-generator
 
 
-NumFilesWrittenInParallel 16  % limits the number of files that are
-                              % written in parallel when outputting
+NumFilesWrittenInParallel 6  % limits the number of files that are
+                             % written in parallel when outputting
 
 
 UnitLength_in_cm          3.085678e24   % defines length unit of output (in cm/h) 
