@@ -12,8 +12,8 @@ GadgetFormat 1
 #Full path to the tabulated cumulative density function n(>M). Format: M[M_sun/h] n[(h/Mpc)^3]
 MassFunctionFile	examples/ONLY_HALOGEN/data/HMF_Behroozi_z0.0.dat
 
-#Full Path to the output
-OutputFile	examples/ONLY_HALOGEN/output/GOLIAT.halos
+#Output BaseName including directory (.halos will be added at the end for the catalog)
+OutputFile	examples/ONLY_HALOGEN/output/GOLIAT 
 
 #Number of Cells per side of the grid used (lcell=Lbox/NCellsLin)
 NCellsLin	250
@@ -22,24 +22,33 @@ NCellsLin	250
 alphaFile       examples/FULL_HALOGEN/data/M-alpha.txt  #if you did not run ./fit, use this one (downloaded)
 #alphaFile       examples/FITTING/output/GOLIAT/M-alpha.txt
 
-#Relative error allowed in CumulativeProb
-recalc_frac	1.0
-
-#number of OMP threads
-nthreads	16
-
-#Reference densisty: choose "crit" for rho_critical or "matter" for rho_matter
-rho_ref		crit
-
-#Density at which the edge of the halo is defined in units of rho_ref
-Overdensity	200
-
 #Minimum halo mass in units of M_sun/h
 #Mmin		8.75e12
 Mmin		2.0e-4
 
+#Relative error allowed in CumulativeProb
+recalc_frac	1.0
+
+#number of OMP threads for place_halos 
+nthreads	16
+
+
+
+
 #Random seed. If negative, synchronized with time.
 Seed 1422358203
+
+#Reference densisty: choose "crit" for rho_critical or "matter" for rho_matter
+rho_ref		crit
+#Density at which the edge of the halo is defined in units of rho_ref
+Overdensity	200
+### Optional ###
+#Compute several halogen realisations over the same snapshot (useful for accounting for halogen variance)
+Repeat	 	1
+#Compute correlation function
+Correlation 	Yes
+#If set, halo catalog is not written (may be useful if "Correlation" is set)
+OmitCatalog	Yes
 
 ######### Specific Gadget formats ########
 GadL_Unit 	1.0

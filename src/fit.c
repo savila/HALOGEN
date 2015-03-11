@@ -230,7 +230,7 @@ int main(int argc, char **argv){
 
 	//Generate the halo masses from the mass function
 	fprintf(stderr,"Generating Halo Masses...\n");
-	Nhalos = populate_mass_function(MassFunctionFile,Mmin,Lbox,&HaloMass,seed,160);
+	Nhalos = populate_mass_function(MassFunctionFile,Mmin,Lbox,&HaloMass,seed);
 	if (Nhalos<0){
 		fprintf(stderr,"error: Couldnt create HaloMass array\n");	
 		return -1;

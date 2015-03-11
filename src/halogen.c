@@ -29,12 +29,14 @@ HALOGEN has been developped by Santiago Avila and Steven Murray
 
 #define rho_crit (27.755e10)
 #define LINELENGTH 256
-#define NParam 17
+#define NParam 20
+#define NParam_need 9
 
 char ParameterList[NParam][32] = {"Snapshot","GadgetFormat","MassFunctionFile",
-		"OutputFile","NCellsLin","alphaFile","rho_ref","Overdensity","Mmin",
-		"GadL_Unit","GadM_Unit","GadSwap","GadDouble","GadLong","Seed","recalc_frac",
-		"nthreads"};
+		"OutputFile","NCellsLin","alphaFile","Mmin","recalc_frac","nthreads","Seed","rho_ref","Overdensity",
+		"Repeat","Correlation","OmitCatalog","GadL_Unit","GadM_Unit","GadSwap","GadDouble","GadLong"};
+
+
 
 
 int ParameterSet[NParam];
@@ -56,9 +58,14 @@ int Nalpha=0;
 double *alpha,*fvel;
 double *Malpha;
 
+int Repeat = 1;				
+int Correlate = 1;
+int OmitCat = 1;
 
-float LUNIT, MUNIT;
-int SWP, LGADGET, DGADGET;
+
+
+float LUNIT=1.0, MUNIT=1.0e10;
+int SWP=0, LGADGET=0, DGADGET=0;
 
 
 
@@ -164,7 +171,7 @@ if (number_exclusion!=1){
 
 	//Generate the halo masses from the mass function
 	fprintf(stderr,"Generating Halo Masses...\n");
-	Nhalos = populate_mass_function(MassFunctionFile,Mmin,Lbox,&HaloMass,seed,nthreads);
+	Nhalos = populate_mass_function(MassFunctionFile,Mmin,Lbox,&HaloMass);
 	if (Nhalos<0)
 		fprintf(stderr,"error: Couldnt create HaloMass array\n");	
 	fprintf(stderr,"...Halo Masses Generated\n");
@@ -299,7 +306,7 @@ int read_input_file(char *name){
 					else
 						NParametersSet++;
 					#ifdef VERB 
-					fprintf(stderr,"\t%s: %s\n",word,MassFunctionFile);
+				fprintf(stderr,"\t%s: %s\n",word,MassFunctionFile);
 					#endif
 					ParameterSet[i]++;
 					break;
@@ -338,8 +345,59 @@ int read_input_file(char *name){
 					#endif
 					ParameterSet[i]++;
 					break;
-
-				case 6:
+				case 6: 
+					sscanf(line,"%s %f",word,&Mmin);
+					if (ParameterSet[i]>0)
+						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
+					else
+						NParametersSet++;
+					#ifdef VERB
+						#ifdef NDENS
+						if (Mmin>1)
+							fprintf(stderr,"WARNING: This does not seem a number density in [Mpc/h]^{-3}\n");
+						fprintf(stderr,"\tNdens: %e.\n",Mmin);
+						#else
+						if (Mmin<1e5)
+							fprintf(stderr,"WARNING: This does not seem a Mass in [Msun/h]\n");
+						fprintf(stderr,"\t%s: %e.\n",word,Mmin);
+						#endif
+					#endif
+					ParameterSet[i]++;
+					break;
+				case 7:
+					sscanf(line,"%s %f",word,&recalc_frac);
+					if (ParameterSet[i]>0)
+						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
+					else
+						NParametersSet++;
+					#ifdef VERB
+					fprintf(stderr,"\t%s: %f\n",word,recalc_frac);
+					#endif
+					ParameterSet[i]++;
+					break;
+				case 8:
+					sscanf(line,"%s %d",word,&nthreads);
+					if (ParameterSet[i]>0)
+						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
+					else
+						NParametersSet++;
+					#ifdef VERB
+					fprintf(stderr,"\t%s: %d\n",word,nthreads);
+					#endif
+					ParameterSet[i]++;
+					break;
+				case 9:
+					sscanf(line,"%s %ld",word,&seed);
+					if (ParameterSet[i]>0)
+						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
+					else
+						NParametersSet++;
+					#ifdef VERB
+					fprintf(stderr,"\t%s: %ld\n",word,seed);
+					#endif
+					ParameterSet[i]++;
+					break;
+				case 10:
 					sscanf(line,"%s %s",word,rho_ref);
 					if (ParameterSet[i]>0)
 						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
@@ -355,7 +413,7 @@ int read_input_file(char *name){
 					ParameterSet[i]++;
 					break;
 
-				case 7:
+				case 11:
 					sscanf(line,"%s %f",word,&OVD);
 					if (ParameterSet[i]>0)
 						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
@@ -367,27 +425,55 @@ int read_input_file(char *name){
 					ParameterSet[i]++;
 					break;
 
-				case 8: 
-					sscanf(line,"%s %f",word,&Mmin);
+				case 12:
+					sscanf(line,"%s %d",word,&Repeat);
 					if (ParameterSet[i]>0)
 						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
 					else
 						NParametersSet++;
-					#ifdef VERB
-						#ifdef NDENS
-						if (Mmin>1)
-							fprintf(stderr,"WARNING: This does not seem a number density in [Mpc/h]^{-3}\n");
-						fprintf(stderr,"\tNdens: %e.\n",Mmin);
-						#else
-						if (Mmin<1e5)
-							fprintf(stderr,"WARNING: This does not seem a Mass in [Msun/h]\n");
-						fprintf(stderr,"\t%s: %e.\n",word,Mmin);a
-						#endif
+					#ifdef VERB 
+					fprintf(stderr,"\t%s: %d\n",word,Repeat);
 					#endif
 					ParameterSet[i]++;
 					break;
 
-				case 9:
+				case 13:
+					sscanf(line,"%s %s",word,&stemp);
+					if (ParameterSet[i]>0)
+						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
+					else
+						NParametersSet++;
+					Correlate = strcmp(stemp,"Yes");
+					if (Correlate!=0 && strcmp(stemp,"No")!=0)
+						fprintf(stderr,"WARNING: %s does not match Yes or No, Default: No",word);
+					#ifdef VERB 
+					if (Correlate==0)
+						fprintf(stderr,"\t%s: Yes\n",word);
+					else
+						fprintf(stderr,"\t%s: No\n",word);
+					#endif
+					ParameterSet[i]++;
+					break;
+				case 14:
+					sscanf(line,"%s %s",word,&stemp);
+					if (ParameterSet[i]>0)
+						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
+					else
+						NParametersSet++;
+					OmitCat = strcmp(stemp,"Yes");
+					if (OmitCat!=0 && strcmp(stemp,"No")!=0)
+						fprintf(stderr,"WARNING: %s does not match Yes or No, Default: No",word);
+					#ifdef VERB 
+					if (OmitCat==0)
+						fprintf(stderr,"\t%s: Yes\n",word);
+					else
+						fprintf(stderr,"\t%s: No\n",word);
+					#endif
+					ParameterSet[i]++;
+					break;
+
+
+				case 15:
 					sscanf(line,"%s %f",word,&LUNIT);
 					if (ParameterSet[i]>0)
 						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
@@ -396,7 +482,7 @@ int read_input_file(char *name){
 					ParameterSet[i]++;
 					break;
 
-				case 10:
+				case 16:
 					sscanf(line,"%s %f",word,&MUNIT);
 					if (ParameterSet[i]>0)
 						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
@@ -408,7 +494,7 @@ int read_input_file(char *name){
 					ParameterSet[i]++;
 					break;
 
-				case 11:
+				case 17:
 					sscanf(line,"%s %d",word, &SWP);
 					if (ParameterSet[i]>0)
 						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
@@ -420,7 +506,7 @@ int read_input_file(char *name){
 					ParameterSet[i]++;
 					break;
 
-				case 12:
+				case 18:
 					sscanf(line,"%s %d",word,&DGADGET);
 					if (ParameterSet[i]>0)
 						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
@@ -432,7 +518,7 @@ int read_input_file(char *name){
 					ParameterSet[i]++;
 					break;
 
-				case 13:
+				case 19:
 					sscanf(line,"%s %d",word,&LGADGET);
 					if (ParameterSet[i]>0)
 						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
@@ -443,64 +529,7 @@ int read_input_file(char *name){
 					#endif
 					ParameterSet[i]++;
 					break;
-				case 14:
-					sscanf(line,"%s %ld",word,&seed);
-					if (ParameterSet[i]>0)
-						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
-					else
-						NParametersSet++;
-					#ifdef VERB
-					fprintf(stderr,"\t%s: %ld\n",word,seed);
-					#endif
-					ParameterSet[i]++;
-					break;
-				case 15:
-					sscanf(line,"%s %f",word,&recalc_frac);
-					if (ParameterSet[i]>0)
-						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
-					else
-						NParametersSet++;
-					#ifdef VERB
-					fprintf(stderr,"\t%s: %f\n",word,recalc_frac);
-					#endif
-					ParameterSet[i]++;
-					break;
-				case 16:
-					sscanf(line,"%s %d",word,&nthreads);
-					if (ParameterSet[i]>0)
-						fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
-					else
-						NParametersSet++;
-					#ifdef VERB
-					fprintf(stderr,"\t%s: %d\n",word,nthreads);
-					#endif
-					ParameterSet[i]++;
-					break;
-/*
-                                case 17:
-                                        sscanf(line,"%s %f",word,&beta);
-                                        if (ParameterSet[i]>0)
-                                                fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
-                                        else
-                                                NParametersSet++;
-                                        #ifdef VERB
-                                        fprintf(stderr,"\t%s: %f\n",word,beta);
-                                        #endif
-                                        ParameterSet[i]++;
-                                        break;
-                                case 18:
-                                        sscanf(line,"%s %f",word,&VEL_FACT);
-                                        if (ParameterSet[i]>0)
-                                                fprintf(stderr,"WARNING: Parameter %s set more than once\n",word);
-                                        else
-                                                NParametersSet++;
-                                        #ifdef VERB
-                                        fprintf(stderr,"\t%s: %f\n",word,VEL_FACT);
-                                        #endif
-                                        ParameterSet[i]++;
-                                        break;
 
-*/
 				default:
 					fprintf(stderr,"WARNING: Unknown parameter %s\n",word);
 					break;
@@ -511,8 +540,29 @@ int read_input_file(char *name){
 	fclose(f);
 	if(NParametersSet!=NParam){
 		for (i=0;i<NParam;i++){
-			if (ParameterSet[i]==0)
-				fprintf(stderr,"ERROR: Parameter %s not set in input file\n",ParameterList[i]);
+			if (ParameterSet[i]==0){
+				if (i<NParam_need)
+					fprintf(stderr,"ERROR: Parameter %s not set in input file\n",ParameterList[i]);
+			
+				if (i==9){
+					seed=-1;
+					#ifdef VERB
+					fprintf(stderr,"\t%s not found, set to: %ld\n",ParameterList[i],seed);
+					#endif
+				}
+				if (i==10){
+					rho_ref="crit";
+					#ifdef VERB
+					fprintf(stderr,"\t%s not found, set to: %s\n",ParameterList[i],rho_ref);
+					#endif
+				}
+				if (i==11){
+					OVD=200;
+					#ifdef VERB
+					fprintf(stderr,"\t%s not found, set to: %f\n",ParameterList[i],OVD);
+					#endif
+				}
+			}
 		}
 		return -1;
 	}

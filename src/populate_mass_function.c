@@ -39,7 +39,7 @@ static int compare_float(const void * , const void * );
 //Reads the cumulative mass function file, and creates and array of halo_masses which populate that function.
 //The return value (if successful) is the number of haloes
 
-long populate_mass_function(char *filename, double Mmin, double Lbox, float **halo_masses,long seed, int nthreads){
+long populate_mass_function(char *filename, double Mmin, double Lbox, float **halo_masses,long seed){
 	long Npoints,Nshort,Nhalos,i,j;
 	double *mass_arr,*mass_inv_arr, *dens_arr, *dens_inv_arr, *y2, d_rand;
 	double dens_max;
