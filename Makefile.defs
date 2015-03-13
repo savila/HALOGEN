@@ -13,8 +13,8 @@ FFTW_LIBS = -I$(FFTW_DIR)/include
 FFTW_INCL = -L$(FFTW_DIR)/lib
 
 
-CCMPI     =  mpicc
-CC        =  gcc
+CCMPI     =  cc
+CC        =  cc
 MPICHLIB  = #path 
 
 CFLAGS  = -O3 -Wall -fopenmp  # other cflags (optimization, warnings,openmp etc.)

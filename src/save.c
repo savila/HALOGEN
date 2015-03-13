@@ -13,6 +13,350 @@ Roman Scoccimarro and Sebastian Pueblas (http://cosmo.nyu.edu/roman/2LPT/)
 #include "allvars.h"
 #include "proto.h"
 
+#define ESTIMATED_FRACTION 1.0
+
+#ifdef  FULL_MPI
+int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
+	int NextSlice, PrevSlice;
+	//, *WhichSlice;
+	int NPartPrevSlice=0,NPartNextSlice=0; 
+	float *NextSliceX, *NextSliceY, *NextSliceZ, *NextSliceVX, *NextSliceVY, *NextSliceVZ;
+	float *PrevSliceX, *PrevSliceY, *PrevSliceZ, *PrevSliceVX, *PrevSliceVY, *PrevSliceVZ;
+	long *count;
+	double invL = 1.0/Box;
+	long ipart=0;
+
+
+	int NTransferPart = (int) GlassTileFac*GlassTileFac * ESTIMATED_FRACTION;
+	
+	#ifdef DEBUG
+	fprintf(stderr,"\t Note: %f%% of extra memory used\n", (float) NTransferPart*2.0/(GlassTileFac*GlassTileFac*GlassTileFac));
+	#endif
+
+	NextSliceX = (float *)malloc(NTransferPart*sizeof(float));
+	NextSliceY = (float *)malloc(NTransferPart*sizeof(float));
+	NextSliceZ = (float *)malloc(NTransferPart*sizeof(float));
+	NextSliceVX = (float *)malloc(NTransferPart*sizeof(float));
+	NextSliceVY = (float *)malloc(NTransferPart*sizeof(float));
+	NextSliceVZ = (float *)malloc(NTransferPart*sizeof(float));
+	
+	if (NextSliceX==NULL || NextSliceY==NULL || NextSliceZ==NULL || NextSliceVX==NULL || NextSliceVY==NULL || NextSliceVZ==NULL)  {
+		fprintf(stderr,"ERROR: Couldnt allocate NextSliceCoords\n");
+		return -1;
+	}	
+	PrevSliceX = (float *)malloc(NTransferPart*sizeof(float));
+	PrevSliceY = (float *)malloc(NTransferPart*sizeof(float));
+	PrevSliceZ = (float *)malloc(NTransferPart*sizeof(float));
+	PrevSliceVX = (float *)malloc(NTransferPart*sizeof(float));
+	PrevSliceVY = (float *)malloc(NTransferPart*sizeof(float));
+	PrevSliceVZ = (float *)malloc(NTransferPart*sizeof(float));
+	
+	if (PrevSliceX==NULL || PrevSliceY==NULL || PrevSliceZ==NULL || PrevSliceVX==NULL || PrevSliceVY==NULL || PrevSliceVZ==NULL)  {
+		fprintf(stderr,"ERROR: Couldnt allocate PrevSliceCoords\n");
+		return -1;
+	}	
+
+
+	#ifdef DEBUG
+	fprintf(stderr,"\tL=%f, invL=%f, Nlin=%d\n",Box,invL,Nlin);
+	#endif
+
+	(*NPartPerCell) = (long *) calloc(Nlin*Nlin*Nx,sizeof(long));
+	if( *NPartPerCell == NULL) {
+		fprintf(stderr,"\tplace_halos(): could not allocate %d array for NPartPerCell[]\nABORTING",Nlin*Nlin*Nx);
+		exit(-1);
+	}
+	#ifdef DEBUG
+	fprintf(stderr,"\t...NPartPerCell allocaled, continue...\n");
+	#endif
+	(*ListOfPart) = (long **) calloc(Nlin*Nlin*Nx,sizeof(long *));
+	if( *ListOfPart == NULL) {
+		fprintf(stderr,"\tplace_halos(): could not allocate %d array for LisOfPart[]\nABORTING",Nlin*Nlin*Nx);
+		exit(-1);
+	}
+	#ifdef DEBUG
+	fprintf(stderr,"\t...ListOFPART allocaled, continue...\n");
+	#endif
+
+	count = (long *) calloc(Nlin*Nlin*Nx,sizeof(long));
+	if( count == NULL) {
+		fprintf(stderr,"\tplace_halos(): could not allocate %d array for count[]\nABORTING",Nlin*Nlin*Nx);
+		exit(-1);
+	}
+	#ifdef DEBUG
+	fprintf(stderr,"\t Counters allocated \n\n");
+	#endif
+
+
+	NPartPrevSlice=0;		
+	NPartNextSlice=0;		
+	//Counting Particles in cells
+	//t3=time(NULL);
+	//#omp
+	for (ipart=0;ipart<NumPart;ipart++) {
+		if (parX[ipart]==Box)
+			partX[ipart]=0.;
+		if (partY[ipart]==Box)
+			partY[ipart]=0.;
+		if (partZ[ipart]==Box)
+			partZ[ipart]=0.;
+		i = (long) (invL * partX[ipart]*Nlin);
+		ilocal = (long) i - Nx*ThisTask;
+		j = (long) (invL * partY[ipart]*Nlin);
+		k = (long) (invL * partZ[ipart]*Nlin);
+
+		if ((j<0) || (j>=Nlin) || (k<0) || (k>=Nlin)){
+			fprintf(stderr,"\tERROR: Particle %ld at [%f,%f,%f]->[%d,%d,%d] seems to be out of the right box interval [0.,%f)\n",ipart,partX[ipart],partY[ipart],partZ[ipart],i,j,k,Box);
+			exit(0);
+		}
+
+		if (ilocal>=0 && ilocal<Nx) {
+			lin_ijk = k+j*Nlin+ilocal*Nlin*Nlin;
+			(*NPartPerCell)[lin_ijk]++;
+
+			//WhichSlice[ipart]=0;		
+		}
+		else if ((ilocal<0 && ThisTask!=0 && ilocal>=-Nx) || (ThisTask==0 && i<Nlin && i>=(Nlin-Nx))){
+			//WhichSlice[ipart]=-1;		
+			//PrevSlice[NPartPrevSlice]=ipart;		
+			PrevSliceX[NPartPrevSlice]=partX[ipart];		
+			PrevSliceY[NPartPrevSlice]=partY[ipart];		
+			PrevSliceZ[NPartPrevSlice]=partZ[ipart];		
+			PrevSliceVX[NPartPrevSlice]=partVX[ipart];		
+			PrevSliceVY[NPartPrevSlice]=partVY[ipart];		
+			PrevSliceVZ[NPartPrevSlice]=partVZ[ipart];		
+			NPartPrevSlice++;		
+		}
+		else if ((ilocal>=Nx && ilocal<2*Nx && ThisTask!=Ntask-1) || (ThisTask==Ntaks-1 && i>=0 && i<Nx)){
+			//WhichSlice[ipart]=1;		
+			//NextSlice[NPartNextSlice]=ipart;
+			NextSliceX[NPartNextSlice]=partX[ipart];		
+			NextSliceY[NPartNextSlice]=partY[ipart];		
+			NextSliceZ[NPartNextSlice]=partZ[ipart];		
+			NextSliceVX[NPartNextSlice]=partVX[ipart];		
+			NextSliceVY[NPartNextSlice]=partVY[ipart];		
+			NextSliceVZ[NPartNextSlice]=partVZ[ipart];		
+			NPartNextSlice++;		
+		}
+		else{
+			fprintf(stderr,"ERROR: Something went wrong, maybe a particle moved accross 2 slices:\n");
+			fprintf(stderr,"\t- Part: %ld/%ld. [i,j,k]=[%ld,%ld,%ld], ilocal=%ld, [X,Y,Z]=[%f,%f,%f], Task: %d/%d\n",ipart,NumPart,i,j,k,ilocal,partX[ipart],partY[ipart],partZ[ipart], ThisTask, NTask);
+			return -1;
+		}
+	}
+
+	//Send to next slice
+	if (ThisTask!=NTask-1)
+		NextSlice = ThisTask+1;
+	else 
+		NextSlice = 0;
+	if (ThisTask!=0)
+		PrevSlice = ThisTask-1;
+	else 
+		PrevSlice = NTask-1;
+
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending %d particles\n",ThisTask,NPartNextSlice);
+  	#endif
+  	MPI_Send( &NPartNextSlice, 1, MPI_INT, NextSlice, 1234, MPI_COMM_WORLD); 
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending x[%d]=%f \n",ThisTask,NPartNextSlice-1,NextSliceX[NPartNextSlice-1]);
+  	#endif
+  	MPI_Send( &NextSliceX[0], NPartNextSlice, MPI_FLOAT, NextSlice, 1111, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending y[%d]=%f \n",ThisTask,NPartNextSlice-1,NextSliceY[NPartNextSlice-1]);
+  	#endif
+  	MPI_Send( &NextSliceY[0], NPartNextSlice, MPI_FLOAT, NextSlice, 1112, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending z[%d]=%f \n",ThisTask,NPartNextSlice-1,NextSliceZ[NPartNextSlice-1]);
+  	#endif
+  	MPI_Send( &NextSliceZ[0], NPartNextSlice, MPI_FLOAT, NextSlice, 1113, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending vz[%d]=%f \n",ThisTask,NPartNextSlice-1,NextSliceVZ[NPartNextSlice-1]);
+  	#endif
+  	MPI_Send( &NextSliceVZ[0], NPartNextSlice, MPI_FLOAT, NextSlice, 1116, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending vx[%d]=%f \n",ThisTask,NPartNextSlice-1,NextSliceVX[NPartNextSlice-1]);
+  	#endif
+  	MPI_Send( &NextSliceVX[0], NPartNextSlice, MPI_FLOAT, NextSlice, 1114, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending vy[%d]=%f \n",ThisTask,NPartNextSlice-1,NextSliceVY[NPartNextSlice-1]);
+  	#endif
+  	MPI_Send( &NextSliceVY[0], NPartNextSlice, MPI_FLOAT, NextSlice, 1115, MPI_COMM_WORLD)
+
+	MPI_Recv(&NfromPrevSlice, 1, MPI_INT, PrevSlice, 1234, MPI_COMM_WORLD, &status);
+	FromPrevSliceX = (float *) malloc(NfromPrevSlice*sizeof(float));
+	FromPrevSliceY = (float *) malloc(NfromPrevSlice*sizeof(float));
+	FromPrevSliceZ = (float *) malloc(NfromPrevSlice*sizeof(float));
+	FromPrevSliceVX = (float *) malloc(NfromPrevSlice*sizeof(float));
+	FromPrevSliceVY = (float *) malloc(NfromPrevSlice*sizeof(float));
+	FromPrevSliceVZ = (float *) malloc(NfromPrevSlice*sizeof(float));
+	MPI_Recv( &FromPrevSliceX[0], NfromPrevSlice, MPI_FLOAT, PrevSlice, 1111, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromPrevSliceY[0]), NfromPrevSlice, MPI_FLOAT, PrevSlice, 1112, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromPrevSliceZ[0]), NfromPrevSlice, MPI_FLOAT, PrevSlice, 1113, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromPrevSliceVZ[0]), NfromPrevSlice, MPI_FLOAT, PrevSlice, 1114, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromPrevSliceVY[0]), NfromPrevSlice, MPI_FLOAT, PrevSlice, 1115, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromPrevSliceVZ[0]), NfromPrevSlice, MPI_FLOAT, PrevSlice, 1116, MPI_COMM_WORLD, &status);
+	#ifdef DEBUG
+  	//sleep(2);
+  	fprintf(stderr,"\tTask 0, received Vy[%d]=%f  from task %d\n",NfromPrevSlice-1,FromPrevSliceVY[NfromPrevSlice-1],PrevSlice);
+  	//sleep(2);
+	#endif
+
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending %d particles\n",ThisTask,NPartPrevSlice);
+  	#endif
+  	MPI_Send( &NPartPrevSlice, 1, MPI_INT, PrevSlice, 2234, MPI_COMM_WORLD); 
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending x[%d]=%f \n",ThisTask,NPartPrevSlice-1,PrevSliceX[NPartPrevSlice-1]);
+  	#endif
+  	MPI_Send( &PrevSliceX[0], NPartPrevSlice, MPI_FLOAT, PrevSlice, 2111, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending y[%d]=%f \n",ThisTask,NPartPrevSlice-1,PrevSliceY[NPartPrevSlice-1]);
+  	#endif
+  	MPI_Send( &PrevSliceY[0], NPartPrevSlice, MPI_FLOAT, PrevSlice, 2112, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending z[%d]=%f \n",ThisTask,NPartPrevSlice-1,PrevSliceZ[NPartPrevSlice-1]);
+  	#endif
+  	MPI_Send( &PrevSliceZ[0], NPartPrevSlice, MPI_FLOAT, PrevSlice, 2113, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending vz[%d]=%f \n",ThisTask,NPartPrevSlice-1,PrevSliceVZ[NPartPrevSlice-1]);
+  	#endif
+  	MPI_Send( &PrevSliceVZ[0], NPartPrevSlice, MPI_FLOAT, PrevSlice, 2116, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending vx[%d]=%f \n",ThisTask,NPartPrevSlice-1,PrevSliceVX[NPartPrevSlice-1]);
+  	#endif
+  	MPI_Send( &PrevSliceVX[0], NPartPrevSlice, MPI_FLOAT, PrevSlice, 2114, MPI_COMM_WORLD);
+  	#ifdef DEBUG
+  	fprintf(stderr,"\tTask %d, sending vy[%d]=%f \n",ThisTask,NPartPrevSlice-1,PrevSliceVY[NPartPrevSlice-1]);
+  	#endif
+  	MPI_Send( &PrevSliceVY[0], NPartPrevSlice, MPI_FLOAT, PrevSlice, 2115, MPI_COMM_WORLD)
+
+	MPI_Recv(&NfromNextSlice, 1, MPI_INT, NextSlice, 2234, MPI_COMM_WORLD, &status);
+	FromNextSliceX = (float *) malloc(NfromNextSlice*sizeof(float));
+	FromNextSliceY = (float *) malloc(NfromNextSlice*sizeof(float));
+	FromNextSliceZ = (float *) malloc(NfromNextSlice*sizeof(float));
+	FromNextSliceVX = (float *) malloc(NfromNextSlice*sizeof(float));
+	FromNextSliceVY = (float *) malloc(NfromNextSlice*sizeof(float));
+	FromNextSliceVZ = (float *) malloc(NfromNextSlice*sizeof(float));
+	MPI_Recv( &FromNextSliceX[0], NfromNextSlice, MPI_FLOAT, NextSlice, 2111, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromNextSliceY[0]), NfromNextSlice, MPI_FLOAT, NextSlice, 2112, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromNextSliceZ[0]), NfromNextSlice, MPI_FLOAT, NextSlice, 2113, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromNextSliceVZ[0]), NfromNextSlice, MPI_FLOAT, NextSlice, 2114, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromNextSliceVY[0]), NfromNextSlice, MPI_FLOAT, NextSlice, 2115, MPI_COMM_WORLD, &status);
+	MPI_Recv( &(FromNextSliceVZ[0]), NfromNextSlice, MPI_FLOAT, NextSlice, 2116, MPI_COMM_WORLD, &status);
+	#ifdef DEBUG
+  	//sleep(2);
+  	fprintf(stderr,"\tTask 0, received Vy[%d]=%f  from task %d\n",NfromNextSlice-1,FromNextSliceVY[NfromNextSlice-1],NextSlice);
+  	//sleep(2);
+	#endif
+
+ 	partX=(float *)realloc(partX,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
+ 	partY=(float *)realloc(partY,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
+ 	partZ=(float *)realloc(partZ,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
+ 	partVX=(float *)realloc(partVX,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
+ 	partVY=(float *)realloc(partVY,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
+ 	partVZ=(float *)realloc(partVZ,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
+	
+	if (partX == NULL || partY == NULL || partZ == NULL || partVX == NULL || partVY == NULL || partVZ == NULL){
+		fprintf(stderr,"ERROR reallocating memory for Particles in task %d \t", ThisTask);
+		return -1;
+	}
+	
+	memcpy(&(partX[NumPart]),FromPrevSliceX,NfromPrevSlice);
+	memcpy(&(partX[NumPart+NfromNextSlice]),FromNextSliceX,NfromNextSlice);
+	memcpy(&(partY[NumPart]),FromPrevSliceX,NfromPrevSlice);
+	memcpy(&(partY[NumPart+NfromNextSlice]),FromNextSliceX,NfromNextSlice);
+	memcpy(&(partZ[NumPart]),FromPrevSliceX,NfromPrevSlice);
+	memcpy(&(partZ[NumPart+NfromNextSlice]),FromNextSliceX,NfromNextSlice);
+	memcpy(&(partVX[NumPart]),FromPrevSliceX,NfromPrevSlice);
+	memcpy(&(partVX[NumPart+NfromNextSlice]),FromNextSliceX,NfromNextSlice);
+	memcpy(&(partVY[NumPart]),FromPrevSliceX,NfromPrevSlice);
+	memcpy(&(partVY[NumPart+NfromNextSlice]),FromNextSliceX,NfromNextSlice);
+	memcpy(&(partVZ[NumPart]),FromPrevSliceX,NfromPrevSlice);
+	memcpy(&(partVZ[NumPart+NfromNextSlice]),FromNextSliceX,NfromNextSlice);
+	
+	free(FromNextSliceX);
+	free(FromNextSliceY);
+	free(FromNextSliceZ);
+	free(FromNextSliceVX);
+	free(FromNextSliceVY);
+	free(FromNextSliceVZ);
+	free(FromPrevSliceX);
+	free(FromPrevSliceY);
+	free(FromPrevSliceZ);
+	free(FromPrevSliceVX);
+	free(FromPrevSliceVY);
+	free(FromPrevSliceVZ);
+
+
+	for (ipart=NumPart;ipart<NumPart+NPartPrevSlice+NfromNextSlice;ipart++) {
+		i = (long) (invL * partX[ipart]*Nlin);
+		ilocal = (long) i - Nx*ThisTask;
+		j = (long) (invL * partY[ipart]*Nlin);
+		k = (long) (invL * partZ[ipart]*Nlin);
+		lin_ijk = k+j*Nlin+ilocal*Nlin*Nlin;
+
+		if ((ilocal<0) || (ilocal>Nx) || (j<0) || (j>=Nlin) || (k<0) || (k>=Nlin)){
+			fprintf(stderr,"\tTask %d ERROR: Transferred Particle %ld at [%f,%f,%f]->[%d,%d,%d] seems to be out of the right box interval [0.,%f)\n",ThisTask,ipart,partX[ipart],partY[ipart],partZ[ipart],i,j,k,Box);
+			exit(0);
+		}
+		(*NPartPerCell)[lin_ijk]++;
+		
+		//WhichSlice[ipart]=0;		
+	}
+	
+	#ifdef DEBUG
+	fprintf(stderr,"\tParticles Transferred Counted \n\n");
+	#endif
+	for (i=0;i<Nlin;i++){
+	for (j=0;j<Nlin;j++){
+	for (k=0;k<Nlin;k++){
+		lin_ijk = k+j*Nlin+i*Nlin*Nlin;
+		//fprintf(stderr,"lin_ijk=%d\n",lin_ijk);
+		(*ListOfPart)[lin_ijk] = (long *) calloc((*NPartPerCell)[lin_ijk],sizeof(long));
+	}
+	}
+	}
+
+	#ifdef DEBUG
+	fprintf(stderr,"\t Grid allocated \n\n");
+	#endif
+
+ipart=0;
+//t5=time(NULL);
+//Distributing Particles
+//#pragma omp parallel for private(i_gadget_file,ipart,i,k,j,lin_ijk,ii) shared(PartPerFile,invL,Nlin,ListOfPart,count,out_x,out_z,out_y,out_vx,out_vz,out_vy,partX,partY,partZ,file_vx,file_vy,file_vz,stderr,gadget,no_gadget_files) default(none)
+
+	for (ipart=0;ipart<NumPart+NPartPrevSlice+NfromNextSlice;ipart++) {
+		i = (long) (invL * partX[ipart]*Nlin);
+		ilocal = (long) i - Nx*ThisTask;
+		j = (long) (invL * partY[ipart]*Nlin);
+		k = (long) (invL * partZ[ipart]*Nlin);
+		lin_ijk = k+j*Nlin+ilocal*Nlin*Nlin;
+
+		(*ListOfPart)[lin_ijk][count[lin_ijk]] = ipart;
+		count[lin_ijk]++;
+	}
+
+	return 0;
+}
+
+
+
+
+
+
+#else //FULL_MPI
+
+
+
+
+
+
+
+
+
 
 
 
@@ -808,6 +1152,8 @@ void save_local_data(void)
 }
 
 #endif //ONLY_2LPT
+#endif//FULL_MPI
+
 
 /* This catches I/O errors occuring for my_fwrite(). In this case we better stop.
  */

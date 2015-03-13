@@ -33,7 +33,7 @@ int check_HaloR_in_cell(long ,float *, float *, float * , float *,long ,long,lon
 double ComputeCumulative(double,double, double *, double *);
 
 //Global Variables
-long NCells,NTotCells;
+long NCells,NCells_x,NTotCells;
 float Lbox,lcell;
 int NTHREADS;
 
@@ -65,6 +65,37 @@ long check_limit(long i, long N){
 	return i;
 }
 
+void ComputeLocalProb(double LocalProb, double *Pstart, double *Pend){
+	if (ThisTask!=0){
+		MPI_Send( &LocalProb, 1, MPI_DOUBLE, 0,5555, MPI_COMM_WORLD); 
+
+		MPI_Recv( Pstart, 1, MPI_DOUBLE, 0, 5544, MPI_COMM_WORLD, &status);
+		MPI_Recv( Pend, 1, MPI_DOUBLE, 0, 5566, MPI_COMM_WORLD, &status);
+	}
+	else{
+		int i;
+		double *ProbSlice, temp, total;
+	
+		ProbSlice = (double *) malloc(NTask*sizeof(double));
+		ProbSlice[0] = LocalProb;
+		total = LocalProb;
+
+		for(i=1;i<NTask;i++){
+			MPI_Recv( &temp, 1, MPI_DOUBLE, i, 5555, MPI_COMM_WORLD, &status);
+			ProbSlice[i]=ProbSlice[i-1]+temp;
+			total+=temp;
+		}	
+		ProbSlice[0]=ProbSlice[0]/total;
+		for(i=1;i<NTask;i++){
+			ProbSlice[i]=ProbSlice[i]/total;
+			MPI_Send( &(ProbSlice[i-1]), i, MPI_DOUBLE, 0,5544, MPI_COMM_WORLD); 
+			MPI_Send( &(ProbSlice[i]), i, MPI_DOUBLE, 0,5566, MPI_COMM_WORLD); 	
+		}
+		(*Pstart)=0;
+		(*Pend)=ProbSlice[0];
+	}
+	
+}
 
 /*=============================================================================
  *                             place_halos()
@@ -76,11 +107,10 @@ long check_limit(long i, long N){
 // (NTotPart,PartX,PartY,PartZ), some simulation parameters (L, mp), and 
 // user-defined parameters (Nlin,rho_ref,alpha,Malpha,Nalpha,seed)
 //and returns a list of halo positions and radii (HaloX,HaloY,HaloZ,HaloR)
-int place_halos(long Nend, float *HaloMass, long Nlin, long NTotPart, float *PartX, 
-		float *PartY, float *PartZ, float *PartVX, float *PartVY, float *PartVZ,
-		float L, float rho_ref, long seed, float mp, int nthreads, double *alpha, double *fvel, double *Malpha,
-		long Nalpha,float recalc_frac, float *HaloX, float *HaloY, float *HaloZ, float *HaloVX,
-		float *HaloVY, float *HaloVZ,float *HaloR,long **ListOfPart, 
+int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
+		float rho_ref, long seed, float mp, int nthreads, double *alpha, double *fvel, double *Malpha,
+		long Nalpha,float recalc_frac, float **HaloX, float **HaloY, float *HaloZ, float **HaloVX,
+		float **HaloVY, float **HaloVZ,float **HaloR,long **ListOfPart, 
 		long *NPartPerCell){
 
 
@@ -122,10 +152,11 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 
 
 	NCells = Nlin;
+	NCells_x=Nx
 	Lbox = L;
 	
 	t0=time(NULL);
-	NTotCells = NCells*NCells*NCells;
+	NTotCells = Nlin*Nlin*Nx;
 
 	
 	//Allocate memory for the arrays 
@@ -193,17 +224,16 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 	mpart = (double) mp;
 	Nmin = (long)ceil(HaloMass[Nend-1]*0.9/mpart);
 	lcell = (float) L/NCells;
-
+/*
 	#ifdef VERB
 	fprintf(stderr,"\n\tParticles and Halos placed in %ld^3 cells\n",NCells);
 	fprintf(stderr,"\tBOX = %f  lcell =%f   rho_ref = %e  invL %f\n",L,L/NCells,rho_ref,invL);
 	fprintf(stderr,"\tNhalostart = %d,Nhalosend = %ld,  NPart = %ld\n",0, Nend, NTotPart);
 	fprintf(stderr,"\n\tMinimmum mass= %e. Minimum part per halo = %ld. mpart %e\n",HaloMass[Nend-1],Nmin,mpart);
 	#endif
-	
-
+*/	
+/*
 	#ifdef DEBUG
-	fprintf(stderr,"\n\tRAND_MAX=%d\n",RAND_MAX);
 	fprintf(stderr,"\tX[0] = %f Y[0] = %f Z[0] = %f\n",PartX[0],PartY[0],PartZ[0]);
 	fprintf(stderr,"\tX[1] = %f Y[1] = %f Z[1] = %f\n",PartX[1],PartY[1],PartZ[1]);
 	fprintf(stderr,"\tM[0] = %e \n",HaloMass[0]);
@@ -212,23 +242,24 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 	fprintf(stderr,"\tM[%ld] = %e \n",Nend-1,HaloMass[Nend-1]);
 	fprintf(stderr,"\tX[%ld] = %f Y[%ld] = %f Z[%ld] = %f\n",Nend-1,PartX[Nend-1],Nend-1,PartY[Nend-1],Nend-1,PartZ[Nend-1]);
 	#endif	
-	
+*/	
 	int r = (int) (R_from_mass(HaloMass[0],rho_ref)/(L/NCells));
 	if (L/NCells<R_from_mass(HaloMass[0],rho_ref)){
 		fprintf(stderr,"WARNING: cell size is smaller than the radius of the biggest halo. Using r=%i. This may be problematic\n",r);
 	}
-
+if (ThisTaks==0){
 #ifdef VERB
 	fprintf(stderr,"\tR_max=%f, lcell=%f, r=%d\n",R_from_mass(HaloMass[0],rho_ref),(L/NCells),r);
 	t1=time(NULL);
  	diff = difftime(t1,t0);
 	fprintf(stderr,"\ttime of initialisation %f\n",diff);
 #endif
+}
 // ------------------------------------------------- Initiallised
 
 	//Alloc Enough Memory
 	Nhalos=0;
-	for (i=0;i<NCells;i++){
+	for (i=0;i<Nx;i++){
 	for (j=0;j<NCells;j++){
 	for (k=0;k<NCells;k++){
 		lin_ijk = k+j*NCells+i*NCells*NCells;
@@ -252,6 +283,7 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 		exit(-1);
 	}
 
+if (ThisTaks==0){
 #ifdef VERB
 //	fprintf(stderr,"\tAllocated %ld (longs) in ListOfHalos\n",Nhalos);
 	t3=time(NULL);
@@ -268,7 +300,7 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 		fprintf(stderr,"M=%e\n",HaloMass[ihalo]);
 	}
 #endif
-
+}
 //----------------------------------- Particles and haloes assigned to grid
 
 
@@ -293,21 +325,26 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 	//compute the probability
 
 #ifdef VERB
+	if (ThisTask!=0)
 	fprintf(stderr,"\tUsing OMP with %d threads\n",NTHREADS);
 	t4=time(NULL);
 #endif
 	TotProb = ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);	
+	ComputeLocalProb(TotProb,&Pstart,&Pend);
 #ifdef VERB
-	fprintf(stderr,"\n\tcase 0, TotProb=%e\n",TotProb);
+	if (ThisTask!=0) fprintf(stderr,"\n\tcase 0, TotProb=%e\n",TotProb);
 #endif
 
 
 #ifdef VERB
+	if (ThisTask!=0){
         fprintf(stderr,"\tNumber of alphas: %ld\n",Nalpha);
         fprintf(stderr,"\tUsing alpha_%ld=%f for M>%e\n",i_alpha,exponent,Mchange);
 	t4_5=time(NULL);
  	diff = difftime(t4_5,t4);
 	fprintf(stderr,"\tprobabilty computed in %f secods\n",diff);
+	}
+	fprintf(stderr,"Task %d/%d. Prob in [%f,%f]\n",Pstart,Pend);
 #endif
 // ----------------------------------------- Computed Probability
 
@@ -317,7 +354,7 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 #ifdef VERB
 	fprintf(stderr,"\n\tPlacing Halos...\n\n");
 #endif
-
+exit(0);
 	//Place one by one all the haloes (assumed to be ordered from the most massive to the least massive)
 	for (ihalo=0;ihalo<Nend;ihalo++){
 
@@ -541,7 +578,7 @@ double ComputeCumulative(double alpha, double mpart, double *MassLeft, double *C
         double *PartProb;
         PartProb = (double *) calloc(NCells,sizeof(double));
         #pragma omp parallel for num_threads(NTHREADS) private(i,j,k,lin_ijk) shared(CumulativeProb,PartProb,NCells,alpha,mpart,MassLeft) default(none)
-        for(i=0;i<NCells;i++){
+        for(i=0;i<NCells_x;i++){
                 for(j=0;j<NCells;j++){
                 for(k=0;k<NCells;k++){
                         lin_ijk = k+j*NCells+i*NCells*NCells;
