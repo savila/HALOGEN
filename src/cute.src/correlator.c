@@ -156,7 +156,7 @@ void corr_mono_box_neighbors(int nside,NeighborBox *boxes,
 	}
       }
     } // end pragma omp for
-    fprintf(stderr,"end of pragma omp for\n");
+    //fprintf(stderr,"end of pragma omp for\n");
  #pragma omp critical
     {
       for(ii=0;ii<nb_r;ii++) //Check bound

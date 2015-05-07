@@ -346,7 +346,7 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 
 
 		#ifdef VERB
-        		fprintf(stderr,"\n\tUsing alpha_%ld=%f for M>%e\n",i_alpha,exponent,Mchange);
+        		fprintf(stderr,"\n\tUsing alpha_%ld=%f and fvel=%f for M>%e\n",i_alpha,exponent,fvel_i,Mchange);
 		#endif
         	recalc = 1;
 		}
