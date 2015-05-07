@@ -21,7 +21,7 @@ It also implements a default set of four models for these steps as:
 velocities.
 
 For more details on the method, see Avila, S. et
-al. 2014 -- http://arxiv.org/abs/1412.5228
+al. 2015 -- http://mnras.oxfordjournals.org/cgi/content/abstract/stv711?ijkey=Do3EfS9S1jHUhrv&keytype=ref
 
 Installation
 ------------
