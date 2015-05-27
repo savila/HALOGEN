@@ -9,6 +9,7 @@ CUTE_OBJ    = $(addprefix cute.src/,common.o define.o io.o neighbors.o correlato
 2LPT_OBJ   = power.o $(2LPT_ONLY_OBJ) $(addprefix nrsrc/,nrutil.o qromb.o polint.o trapzd.o) 
 
 HLGN_OBJ   = read_snapshot.o place_halos.o populate_mass_function.o
+HLGN_ONLY_OBJ   = place_halos.o populate_mass_function.o
 FIT_OBJ    = $(HLGN_OBJ) correlate.o
 ALL_OBJ    = $(CUTE_OBJ) $(2LPT_OBJ) $(FIT_OBJ)
 
@@ -28,7 +29,7 @@ all: $(EXEC) halogen fit
 	$(MAKE) 2LPT
 
 $(EXEC): main.c $(2LPT_OBJ) $(HLGN_OBJ) 
-	$(CCMPI) $(CFLAGS) $(DEFS) $(2LPT_OBJ) $(HLGN_OBJ) main.c $(ALL_INCL) $(ALL_LIB)  -o  $(EXEC)  
+	$(CCMPI) $(CFLAGS) $(DEFS) $(2LPT_OBJ) $(HLGN_ONLY_OBJ) main.c $(ALL_INCL) $(ALL_LIB)  -o  $(EXEC)  
 
 $(2LPT_OBJ): %.o : %.c $(2LPT_INCL)
 	 $(CCMPI) $(CFLAGS) $(DEFS) $(2LPTOPTS) $(ALL_INCL) -o $@ -c $< $(ALL_LIB) $(OTHER_LIB) 
@@ -47,8 +48,8 @@ fit:            fit.c halogen.c $(FIT_OBJ) $(FIT_OBJ:o=h)
 clean:
 	-rm -f $(ALL_OBJ) $(EXEC) halogen fit 2LPT
 
-$(HLGN_OBJ) : %.o : %.c %.h
-	$(CC) $(CFLAGS) $(DEFS) -c $< $(OTHER_LIB)
+$(HLGN_ONLY_OBJ) : %.o : %.c %.h
+	$(CCMPI) $(CFLAGS) $(DEFS) -c $< $(ALL_INCL) $(OTHER_LIB) 
 
 correlate.o: %.o : cute %.c %.h
 	$(CC) $(CFLAGS) $(DEFS) -c correlate.c $(OTHER_LIB)

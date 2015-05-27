@@ -4,8 +4,8 @@
 
 #Please, configure this options accordingly to your system
 
-GSL_DIR   = /home2/savila/libs
-FFTW_DIR  = /home2/savila/libs
+GSL_DIR   = /home/santi/libs
+FFTW_DIR  = /home/santi/libs
 
 GSL_INCL  =  -I$(GSL_DIR)/include
 GSL_LIBS  = -L$(GSL_DIR)/lib
@@ -13,10 +13,9 @@ FFTW_LIBS = -I$(FFTW_DIR)/include
 FFTW_INCL = -L$(FFTW_DIR)/lib
 
 
-#CCMPI     =  /home2/savila/libs/bin/mpicc
-CCMPI     =  mpicc
+CCMPI     =  /home/santi/libs/bin/mpicc
 CC        =  gcc
-MPICHLIB  = 
+MPICHLIB  =  -L/home/santi/libs/lib64 -lmpi
 
 CFLAGS  = -O3 -Wall -fopenmp  # other cflags (optimization, warnings,openmp etc.)
 
