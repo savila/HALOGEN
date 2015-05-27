@@ -94,7 +94,7 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 	//t3=time(NULL);
 	//#omp
 	for (ipart=0;ipart<NumPart;ipart++) {
-		if (parX[ipart]==Box)
+		if (partX[ipart]==Box)
 			partX[ipart]=0.;
 		if (partY[ipart]==Box)
 			partY[ipart]=0.;

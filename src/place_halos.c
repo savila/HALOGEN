@@ -15,6 +15,8 @@ HALOGEN has been developped by Santiago Avila and Steven Murray
 #include <string.h>
 
 #include "place_halos.h"
+#include "allvars.h"
+#include "proto.h"
  
 
 #define MAXTRIALS (50)
