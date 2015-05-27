@@ -68,6 +68,7 @@ long check_limit(long i, long N){
 }
 
 void ComputeLocalProb(double LocalProb, double *Pstart, double *Pend){
+  	MPI_Status status;
 	if (ThisTask!=0){
 		MPI_Send( &LocalProb, 1, MPI_DOUBLE, 0,5555, MPI_COMM_WORLD); 
 
@@ -112,7 +113,7 @@ void ComputeLocalProb(double LocalProb, double *Pstart, double *Pend){
 int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 		float rho_ref, long seed, float mp, int nthreads, double *alpha, double *fvel, double *Malpha,
 		long Nalpha,float recalc_frac, float **HaloX, float **HaloY, float *HaloZ, float **HaloVX,
-		float **HaloVY, float **HaloVZ,float **HaloR,long **ListOfPart, 
+		float **HaloVY, float **HaloVZ,float **HaloR,float L,long **ListOfPart, 
 		long *NPartPerCell){
 
 
@@ -122,7 +123,6 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 	long i,j,k,lin_ijk, Nmin;
 	long *count,trials;
 	long ihalo, ipart,i_alpha;
-	double invL = 1./L;
 	float Mcell,Mhalo,Mchange; 
 	float R;
 	time_t t0,tI,tII;
@@ -138,7 +138,7 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 	long Nhalos;
 	int recalc;
 
-
+	double Pstart,Pend;
 
 	float diff;
 	time_t t5;
@@ -154,7 +154,7 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 
 
 	NCells = Nlin;
-	NCells_x=Nx
+	NCells_x=Nx;
 	Lbox = L;
 	
 	t0=time(NULL);
@@ -249,7 +249,7 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 	if (L/NCells<R_from_mass(HaloMass[0],rho_ref)){
 		fprintf(stderr,"WARNING: cell size is smaller than the radius of the biggest halo. Using r=%i. This may be problematic\n",r);
 	}
-if (ThisTaks==0){
+if (ThisTask==0){
 #ifdef VERB
 	fprintf(stderr,"\tR_max=%f, lcell=%f, r=%d\n",R_from_mass(HaloMass[0],rho_ref),(L/NCells),r);
 	t1=time(NULL);
@@ -285,7 +285,7 @@ if (ThisTaks==0){
 		exit(-1);
 	}
 
-if (ThisTaks==0){
+if (ThisTask==0){
 #ifdef VERB
 //	fprintf(stderr,"\tAllocated %ld (longs) in ListOfHalos\n",Nhalos);
 	t3=time(NULL);
@@ -346,7 +346,7 @@ if (ThisTaks==0){
  	diff = difftime(t4_5,t4);
 	fprintf(stderr,"\tprobabilty computed in %f secods\n",diff);
 	}
-	fprintf(stderr,"Task %d/%d. Prob in [%f,%f]\n",Pstart,Pend);
+	fprintf(stderr,"Task %d/%d. Prob in [%f,%f]\n",ThisTask,NTask,Pstart,Pend);
 #endif
 // ----------------------------------------- Computed Probability
 
