@@ -21,7 +21,7 @@ HALOGEN has been developped by Santiago Avila and Steven Murray
 #include <string.h>
 #include "read_snapshot.h"
 #include "populate_mass_function.h"
-#include "place_halos.h"
+//#include "place_halos.h"
 
 
 #include "allvars.h"
@@ -99,9 +99,9 @@ int main(int argc, char **argv) {
   	MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
   	MPI_Comm_size(MPI_COMM_WORLD, &NTask);
 
-  	float Lbox, mpart, *x, *y, *z, *vx,*vy,*vz,*hx, *hy, *hz, *hvx,*hvy,*hvz,*hR, om_m;
+  	float Lbox, mpart, *hx, *hy, *hz, *hvx,*hvy,*hvz,*hR,*hM, om_m;
         char tlpt_filename[256],halogen_filename[256];
-        long Npart, Nhalos, **ListOfParticles, *NPartPerCell;
+        long Npart, Nhalos, NlocalHalos, **ListOfParticles, *NPartPerCell;
         float *HaloMass, rho;
 	int Nx;
 
@@ -186,12 +186,12 @@ int main(int argc, char **argv) {
         if(ThisTask == 0) fprintf(stderr,"... HALOGEN file read correctly!\n\n");
 
 	Nx = Nlin/NTask;
-	if (Nx*Ntask!=Nlin){
+	if (Nx*NTask!=Nlin){
                 if(ThisTask == 0) fprintf(stderr,"ERROR: Ncells should be an integer multiple of the MPI tasks used\n");
                 MPI_Finalize();
                 exit(0);
 	}
-	if (GlassTileFac%Ntask!=0)
+	if (GlassTileFac%NTask!=0)
                 if(ThisTask == 0) fprintf(stderr,"WARNING: it is reccommended that GlassTileFac be an integer multiple of the MPI tasks uses (this make cause troubles later on)\n");
 		
 		
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
 		if ((i<3 || i>Nx-4) && (j<3 || j>Nlin-4) && (k<3 || k>Nlin-4))
 			if(ThisTask == 0) fprintf(stderr,"Npart[%d][%d][%d]=%d\n",i,j,k,NPartPerCell[lin_ijk]);
 		if ((float)rand()/RAND_MAX<5.0e-8 && ListOfParticles[lin_ijk]>0){
-			if(ThisTask == 0) fprintf(stderr,"(%f,%f,%f) -> [%d,%d,%d]\n",x[ListOfParticles[lin_ijk][0]],y[ListOfParticles[lin_ijk][0]],z[ListOfParticles[lin_ijk][0]],i,j,k);
+			if(ThisTask == 0) fprintf(stderr,"(%f,%f,%f) -> [%d,%d,%d]\n",P[ListOfParticles[lin_ijk][0]].Pos[0],P[ListOfParticles[lin_ijk][0]].Pos[1],P[ListOfParticles[lin_ijk][0]].Pos[2],i,j,k);
 		}
 	}
 	#endif
@@ -254,6 +254,7 @@ int main(int argc, char **argv) {
         }
         if(ThisTask == 0) fprintf(stderr,"Generating Halo Masses...\n");
         Nhalos = populate_mass_function(MassFunctionFile,Mmin,Lbox,&HaloMass,seed);
+
         if (Nhalos<0){
                 fprintf(stderr,"error: Couldnt create HaloMass array\n");
 
@@ -280,9 +281,12 @@ int main(int argc, char **argv) {
                 }
         }
  
-        NlocalHalos = place_halos(Nhalos,HaloMass, Nlin, Nx, Npart,rho,seed,mpart, nthreads,alpha_vec, fvel, Malpha, Nalpha,recalc_frac,*hx, *hy, *hz, *hvx,*hvy,*hvz,*hR,ListOfParticles,NPartPerCell);
+        NlocalHalos = place_halos(Nhalos,HaloMass, Nlin, Nx, rho,seed,mpart, nthreads,alpha_vec, fvel, Malpha, Nalpha,recalc_frac,&hx, &hy, &hz, &hvx,&hvy,&hvz,&hR,&hM,Lbox,ListOfParticles,NPartPerCell);
+
+
+
 	if (NlocalHalos>0){
-                fprintf(stderr,"...halos placed correctly\n");
+                fprintf(stderr,"...%d halos placed correctly\n",NlocalHalos);
 	}
         else {
                 fprintf(stderr,"ERROR: Problem placing halos\n");
@@ -382,9 +386,9 @@ int main(int argc, char **argv) {
                 }
         }
 
-        if (place_halos(Nhalos,HaloMass, Nlin, Npart, x, y, z, vx,vy,vz,Lbox, rho,seed,mpart, nthreads,alpha_vec, fvel, Malpha, Nalpha,recalc_frac,hx, hy, hz, hvx,hvy,hvz, hR,ListOfParticles,NPartPerCell)==0){
-                fprintf(stderr,"...halos placed correctly\n");
-        }
+//        if (place_halos(Nhalos,HaloMass, Nlin, Npart, x, y, z, vx,vy,vz,Lbox, rho,seed,mpart, nthreads,alpha_vec, fvel, Malpha, Nalpha,recalc_frac,hx, hy, hz, hvx,hvy,hvz, hR,ListOfParticles,NPartPerCell)==0){
+  //              fprintf(stderr,"...halos placed correctly\n");
+    //    }
         else {
                 fprintf(stderr,"ERROR: Problem placing halos\n");
   		MPI_Finalize();
@@ -402,6 +406,7 @@ int main(int argc, char **argv) {
         fprintf(stderr,"...halo catalogue written in %s\n",OutputFile);
 
         free(hx);free(hy);free(hz);free(hR);
+        free(hvx);free(hvy);free(hvz);free(hM);
         free(alpha_vec); free(Malpha);
 
 
@@ -412,17 +417,12 @@ int main(int argc, char **argv) {
 
  
 
-  }
+
 
   MPI_Barrier(MPI_COMM_WORLD);
 
   if(NumPart){
-    free(partX);
-    free(partY);
-    free(partZ);
-    free(partVX);
-    free(partVY);
-    free(partVZ);
+    free(P);
   }
  
 
@@ -924,15 +924,15 @@ void displacement_fields(void)
       
       for(n = 0; n < NumPart; n++)
 	{
-	      /*
+
 	      u = P[n].Pos[0] / Box * Nmesh;
 	      v = P[n].Pos[1] / Box * Nmesh;
 	      w = P[n].Pos[2] / Box * Nmesh;
-	      */
+	      /*
 	      u = partX[n] / Box * Nmesh;
 	      v = partY[n] / Box * Nmesh;
 	      w = partZ[n] / Box * Nmesh;
-	      
+	      */
 	      i = (int) u;
 	      j = (int) v;
 	      k = (int) w;
@@ -990,7 +990,7 @@ void displacement_fields(void)
 		    disp2[axes][(ii * Nmesh + jj) * (2 * (Nmesh / 2 + 1)) + kk] * f8;
 		  dis2 /= (float) nmesh3;
 	      
-/*		  
+		  
 #ifdef ONLY_ZA 	  
 		  P[n].Pos[axes] += dis;
 		  P[n].Vel[axes] = dis * vel_prefac;
@@ -1000,8 +1000,8 @@ void displacement_fields(void)
 #endif
 
 		  P[n].Pos[axes] = periodic_wrap(P[n].Pos[axes]);
-*/
-		  
+
+/*		  
 		  if (axes==0){
 			#ifdef ONLY_ZA
 		  	partX[n] += dis;
@@ -1032,7 +1032,7 @@ void displacement_fields(void)
 			#endif
 		  	partZ[n] = periodic_wrap(partZ[n]);
 		  }
-
+*/
 		  
 		  
 		  

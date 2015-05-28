@@ -11,7 +11,7 @@ MassFunctionFile	examples/FULL_HALOGEN/data/HMF_Behroozi_z0.0.dat
 OutputFile	examples/FULL_HALOGEN/output/GOLIAT.halos
 
 #Number of Cells per side of the grid used (lcell=Lbox/NCellsLin)
-NCellsLin	250
+NCellsLin	256
 
 #Full path to the tabulated alpha(Mass) relation. Format: alpha M[M_sun/h]
 alphaFile       examples/FULL_HALOGEN/data/M-alpha.txt  #if you did not run ./fit, use this one (downloaded)

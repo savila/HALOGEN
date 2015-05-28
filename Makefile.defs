@@ -30,13 +30,15 @@ DEFS            +=      -DHALF_EXCLUSION		#Haloes are allowed to overlap. But th
 #DEFS            +=      -DFULL_EXCLUSION		#Haloes are not allowed to overlap.
 
 
+DEFS		+= -DFULL_MPI
+
 #How to define number density
 DEFS		+=	-DNDENS				#is set,	input parameter Mmin defines the halo number density in [Mpc/h]^{-3}.
 							#if unset, 	input parameter Mmin defines a mass threshold for the haloes generated in M_{sun}/h
 
 #Verbosity
 DEFS           +=      -DVERB				#Add some comments to cross-check.
-#DEFS           +=      -DDEBUG				#Add many comments (for each halo). It slows down the proccess by a factor of 2 aprox.
+DEFS           +=      -DDEBUG				#Add many comments (for each halo). It slows down the proccess by a factor of 2 aprox.
 #DEFS           +=      -DULTRADEBUG			#Add comments in many specific parts. It slows down the process significantly. Use with fewer halos.
 
 

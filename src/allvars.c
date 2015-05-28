@@ -42,8 +42,9 @@ int *Slab_to_task;
 
 int NTaskWithN;
 
-#ifdef ONLY_2LPT
+//#ifdef ONLY_2LPT
 struct part_data *P;
+/*
 #else
 float *partX;
 float *partY;
@@ -53,6 +54,8 @@ float *partVY;
 float *partVZ;
 unsigned long long *partID;
 #endif
+*/
+
 
 int Nglass;
 

@@ -17,17 +17,18 @@ Roman Scoccimarro and Sebastian Pueblas (http://cosmo.nyu.edu/roman/2LPT/)
 
 #ifdef  FULL_MPI
 int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
-	int NextSlice, PrevSlice;
+	int NextSlice, PrevSlice, NfromPrevSlice,NfromNextSlice;
 	//, *WhichSlice;
 	int NPartPrevSlice=0,NPartNextSlice=0; 
-	float *NextSliceX, *NextSliceY, *NextSliceZ, *NextSliceVX, *NextSliceVY, *NextSliceVZ;
-	float *PrevSliceX, *PrevSliceY, *PrevSliceZ, *PrevSliceVX, *PrevSliceVY, *PrevSliceVZ;
+	float *NextSliceX, *NextSliceY, *NextSliceZ, *NextSliceVX, *NextSliceVY, *NextSliceVZ, *FromPrevSliceX, *FromPrevSliceY, *FromPrevSliceZ, *FromPrevSliceVX,*FromPrevSliceVY,*FromPrevSliceVZ;
+	float *PrevSliceX, *PrevSliceY, *PrevSliceZ, *PrevSliceVX, *PrevSliceVY, *PrevSliceVZ, *FromNextSliceX, *FromNextSliceY, *FromNextSliceZ, *FromNextSliceVX, *FromNextSliceVY, *FromNextSliceVZ;
 	long *count;
 	double invL = 1.0/Box;
 	long ipart=0;
+	int i,j,k,ilocal,lin_ijk,ii;
+  	MPI_Status status;
 
-
-	int NTransferPart = (int) GlassTileFac*GlassTileFac * ESTIMATED_FRACTION;
+	int NTransferPart = (int) (GlassTileFac*GlassTileFac * ESTIMATED_FRACTION);
 	
 	#ifdef DEBUG
 	fprintf(stderr,"\t Note: %f%% of extra memory used\n", (float) NTransferPart*2.0/(GlassTileFac*GlassTileFac*GlassTileFac));
@@ -94,19 +95,19 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 	//t3=time(NULL);
 	//#omp
 	for (ipart=0;ipart<NumPart;ipart++) {
-		if (partX[ipart]==Box)
-			partX[ipart]=0.;
-		if (partY[ipart]==Box)
-			partY[ipart]=0.;
-		if (partZ[ipart]==Box)
-			partZ[ipart]=0.;
-		i = (long) (invL * partX[ipart]*Nlin);
+		if (P[ipart].Pos[0]==Box)
+			P[ipart].Pos[0]=0.;
+		if (P[ipart].Pos[1]==Box)
+			P[ipart].Pos[1]=0.;
+		if (P[ipart].Pos[2]==Box)
+			P[ipart].Pos[2]=0.;
+		i = (long) (invL * P[ipart].Pos[0]*Nlin);
 		ilocal = (long) i - Nx*ThisTask;
-		j = (long) (invL * partY[ipart]*Nlin);
-		k = (long) (invL * partZ[ipart]*Nlin);
+		j = (long) (invL * P[ipart].Pos[1]*Nlin);
+		k = (long) (invL * P[ipart].Pos[2]*Nlin);
 
 		if ((j<0) || (j>=Nlin) || (k<0) || (k>=Nlin)){
-			fprintf(stderr,"\tERROR: Particle %ld at [%f,%f,%f]->[%d,%d,%d] seems to be out of the right box interval [0.,%f)\n",ipart,partX[ipart],partY[ipart],partZ[ipart],i,j,k,Box);
+			fprintf(stderr,"\tERROR: Particle %ld at [%f,%f,%f]->[%d,%d,%d] seems to be out of the right box interval [0.,%f)\n",ipart,P[ipart].Pos[0],P[ipart].Pos[1],P[ipart].Pos[2],i,j,k,Box);
 			exit(0);
 		}
 
@@ -119,28 +120,28 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 		else if ((ilocal<0 && ThisTask!=0 && ilocal>=-Nx) || (ThisTask==0 && i<Nlin && i>=(Nlin-Nx))){
 			//WhichSlice[ipart]=-1;		
 			//PrevSlice[NPartPrevSlice]=ipart;		
-			PrevSliceX[NPartPrevSlice]=partX[ipart];		
-			PrevSliceY[NPartPrevSlice]=partY[ipart];		
-			PrevSliceZ[NPartPrevSlice]=partZ[ipart];		
-			PrevSliceVX[NPartPrevSlice]=partVX[ipart];		
-			PrevSliceVY[NPartPrevSlice]=partVY[ipart];		
-			PrevSliceVZ[NPartPrevSlice]=partVZ[ipart];		
+			PrevSliceX[NPartPrevSlice]=P[ipart].Pos[0];		
+			PrevSliceY[NPartPrevSlice]=P[ipart].Pos[1];		
+			PrevSliceZ[NPartPrevSlice]=P[ipart].Pos[2];		
+			PrevSliceVX[NPartPrevSlice]=P[ipart].Vel[0];		
+			PrevSliceVY[NPartPrevSlice]=P[ipart].Vel[1];		
+			PrevSliceVZ[NPartPrevSlice]=P[ipart].Vel[2];		
 			NPartPrevSlice++;		
 		}
-		else if ((ilocal>=Nx && ilocal<2*Nx && ThisTask!=Ntask-1) || (ThisTask==Ntaks-1 && i>=0 && i<Nx)){
+		else if ((ilocal>=Nx && ilocal<2*Nx && ThisTask!=NTask-1) || (ThisTask==NTask-1 && i>=0 && i<Nx)){
 			//WhichSlice[ipart]=1;		
 			//NextSlice[NPartNextSlice]=ipart;
-			NextSliceX[NPartNextSlice]=partX[ipart];		
-			NextSliceY[NPartNextSlice]=partY[ipart];		
-			NextSliceZ[NPartNextSlice]=partZ[ipart];		
-			NextSliceVX[NPartNextSlice]=partVX[ipart];		
-			NextSliceVY[NPartNextSlice]=partVY[ipart];		
-			NextSliceVZ[NPartNextSlice]=partVZ[ipart];		
-			NPartNextSlice++;		
+			NextSliceX[NPartNextSlice]= P[ipart].Pos[0];		
+			NextSliceY[NPartNextSlice]= P[ipart].Pos[1];		
+			NextSliceZ[NPartNextSlice]= P[ipart].Pos[2];		
+			NextSliceVX[NPartNextSlice]=P[ipart].Vel[0];		
+			NextSliceVY[NPartNextSlice]=P[ipart].Vel[1];		
+			NextSliceVZ[NPartNextSlice]=P[ipart].Vel[2];		
+			NPartNextSlice++;
 		}
 		else{
 			fprintf(stderr,"ERROR: Something went wrong, maybe a particle moved accross 2 slices:\n");
-			fprintf(stderr,"\t- Part: %ld/%ld. [i,j,k]=[%ld,%ld,%ld], ilocal=%ld, [X,Y,Z]=[%f,%f,%f], Task: %d/%d\n",ipart,NumPart,i,j,k,ilocal,partX[ipart],partY[ipart],partZ[ipart], ThisTask, NTask);
+			//fprintf(stderr,"\t- Part: %ld/%d. [i,j,k]=[%d,%d,%d], ilocal=%d, [X,Y,Z]=[%f,%f,%f], Task: %d/%d\n",ipart,NumPart,i,j,k,ilocal,partX[ipart],partY[ipart],partZ[ipart], ThisTask, NTask);
 			return -1;
 		}
 	}
@@ -182,7 +183,7 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
   	#ifdef DEBUG
   	fprintf(stderr,"\tTask %d, sending vy[%d]=%f \n",ThisTask,NPartNextSlice-1,NextSliceVY[NPartNextSlice-1]);
   	#endif
-  	MPI_Send( &NextSliceVY[0], NPartNextSlice, MPI_FLOAT, NextSlice, 1115, MPI_COMM_WORLD)
+  	MPI_Send( &NextSliceVY[0], NPartNextSlice, MPI_FLOAT, NextSlice, 1115, MPI_COMM_WORLD);
 
 	MPI_Recv(&NfromPrevSlice, 1, MPI_INT, PrevSlice, 1234, MPI_COMM_WORLD, &status);
 	FromPrevSliceX = (float *) malloc(NfromPrevSlice*sizeof(float));
@@ -230,7 +231,7 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
   	#ifdef DEBUG
   	fprintf(stderr,"\tTask %d, sending vy[%d]=%f \n",ThisTask,NPartPrevSlice-1,PrevSliceVY[NPartPrevSlice-1]);
   	#endif
-  	MPI_Send( &PrevSliceVY[0], NPartPrevSlice, MPI_FLOAT, PrevSlice, 2115, MPI_COMM_WORLD)
+  	MPI_Send( &PrevSliceVY[0], NPartPrevSlice, MPI_FLOAT, PrevSlice, 2115, MPI_COMM_WORLD);
 
 	MPI_Recv(&NfromNextSlice, 1, MPI_INT, NextSlice, 2234, MPI_COMM_WORLD, &status);
 	FromNextSliceX = (float *) malloc(NfromNextSlice*sizeof(float));
@@ -251,18 +252,21 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
   	//sleep(2);
 	#endif
 
- 	partX=(float *)realloc(partX,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
- 	partY=(float *)realloc(partY,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
- 	partZ=(float *)realloc(partZ,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
+      	P = (struct part_data *) realloc(P,sizeof(struct part_data) * (NumPart+ NPartPrevSlice+NfromNextSlice));
+	/*
+ 	partX =(float *)realloc(partX ,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
+ 	partY =(float *)realloc(partY ,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
+ 	partZ =(float *)realloc(partZ ,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
  	partVX=(float *)realloc(partVX,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
  	partVY=(float *)realloc(partVY,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
  	partVZ=(float *)realloc(partVZ,sizeof(float)*(NumPart+ NPartPrevSlice+NfromNextSlice)); 
-	
-	if (partX == NULL || partY == NULL || partZ == NULL || partVX == NULL || partVY == NULL || partVZ == NULL){
+	*/
+	//if (partX == NULL || partY == NULL || partZ == NULL || partVX == NULL || partVY == NULL || partVZ == NULL){
+	if (P==NULL){
 		fprintf(stderr,"ERROR reallocating memory for Particles in task %d \t", ThisTask);
 		return -1;
 	}
-	
+	/*
 	memcpy(&(partX[NumPart]),FromPrevSliceX,NfromPrevSlice);
 	memcpy(&(partX[NumPart+NfromNextSlice]),FromNextSliceX,NfromNextSlice);
 	memcpy(&(partY[NumPart]),FromPrevSliceX,NfromPrevSlice);
@@ -305,11 +309,54 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 		
 		//WhichSlice[ipart]=0;		
 	}
-	
+	*/	
+	for (ii=0;ii<NPartPrevSlice;ii++){
+		ipart =ii+NumPart;
+		P[ipart].Pos[0]=FromNextSliceX[ii];
+		P[ipart].Pos[1]=FromNextSliceY[ii];
+		P[ipart].Pos[2]=FromNextSliceZ[ii];
+		P[ipart].Vel[0]=FromNextSliceVX[ii];
+		P[ipart].Vel[1]=FromNextSliceVY[ii];
+		P[ipart].Vel[2]=FromNextSliceVZ[ii];
+		
+		i = (long) (invL * P[ipart].Pos[0]*Nlin);
+		ilocal = (long) i - Nx*ThisTask;
+		j = (long) (invL * P[ipart].Pos[1]*Nlin);
+		k = (long) (invL * P[ipart].Pos[2]*Nlin);
+		lin_ijk = k+j*Nlin+ilocal*Nlin*Nlin;
+		
+		if ((ilocal<0) || (ilocal>Nx) || (j<0) || (j>=Nlin) || (k<0) || (k>=Nlin)){
+			fprintf(stderr,"\tTask %d ERROR: Transferred Particle %ld at [%f,%f,%f]->[%d,%d,%d] seems to be out of the right box interval [0.,%f)\n",ThisTask,ipart,P[ipart].Pos[0],P[ipart].Pos[2],P[ipart].Pos[2],i,j,k,Box);
+			exit(0);
+		}
+		(*NPartPerCell)[lin_ijk]++;
+	}
+
+	for (ii=0;ii<NPartNextSlice;ii++){
+		ipart =ii+NumPart+NPartPrevSlice;
+		P[ipart].Pos[0]=FromNextSliceX[ii];
+		P[ipart].Pos[1]=FromNextSliceY[ii];
+		P[ipart].Pos[2]=FromNextSliceZ[ii];
+		P[ipart].Vel[0]=FromNextSliceVX[ii];
+		P[ipart].Vel[1]=FromNextSliceVY[ii];
+		P[ipart].Vel[2]=FromNextSliceVZ[ii];
+		
+		i = (long) (invL * P[ipart].Pos[0]*Nlin);
+		ilocal = (long) i - Nx*ThisTask;
+		j = (long) (invL * P[ipart].Pos[1]*Nlin);
+		k = (long) (invL * P[ipart].Pos[2]*Nlin);
+		lin_ijk = k+j*Nlin+ilocal*Nlin*Nlin;
+		
+		if ((ilocal<0) || (ilocal>Nx) || (j<0) || (j>=Nlin) || (k<0) || (k>=Nlin)){
+			fprintf(stderr,"\tTask %d ERROR: Transferred Particle %ld at [%f,%f,%f]->[%d,%d,%d] seems to be out of the right box interval [0.,%f)\n",ThisTask,ipart,P[ipart].Pos[0],P[ipart].Pos[2],P[ipart].Pos[2],i,j,k,Box);
+			exit(0);
+		}
+		(*NPartPerCell)[lin_ijk]++;
+	}
 	#ifdef DEBUG
 	fprintf(stderr,"\tParticles Transferred Counted \n\n");
 	#endif
-	for (i=0;i<Nlin;i++){
+	for (i=0;i<Nx;i++){
 	for (j=0;j<Nlin;j++){
 	for (k=0;k<Nlin;k++){
 		lin_ijk = k+j*Nlin+i*Nlin*Nlin;
@@ -323,16 +370,20 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 	fprintf(stderr,"\t Grid allocated \n\n");
 	#endif
 
+
+
+
 ipart=0;
 //t5=time(NULL);
 //Distributing Particles
 //#pragma omp parallel for private(i_gadget_file,ipart,i,k,j,lin_ijk,ii) shared(PartPerFile,invL,Nlin,ListOfPart,count,out_x,out_z,out_y,out_vx,out_vz,out_vy,partX,partY,partZ,file_vx,file_vy,file_vz,stderr,gadget,no_gadget_files) default(none)
 
 	for (ipart=0;ipart<NumPart+NPartPrevSlice+NfromNextSlice;ipart++) {
-		i = (long) (invL * partX[ipart]*Nlin);
+		i = (long) (invL * P[ipart].Pos[0]*Nlin);
 		ilocal = (long) i - Nx*ThisTask;
-		j = (long) (invL * partY[ipart]*Nlin);
-		k = (long) (invL * partZ[ipart]*Nlin);
+		j = (long) (invL * P[ipart].Pos[1]*Nlin);
+		k = (long) (invL * P[ipart].Pos[2]*Nlin);
+
 		lin_ijk = k+j*Nlin+ilocal*Nlin*Nlin;
 
 		(*ListOfPart)[lin_ijk][count[lin_ijk]] = ipart;
@@ -341,7 +392,6 @@ ipart=0;
 
 	return 0;
 }
-
 
 
 

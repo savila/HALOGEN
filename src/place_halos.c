@@ -14,7 +14,7 @@ HALOGEN has been developped by Santiago Avila and Steven Murray
 #include <omp.h> 
 #include <string.h>
 
-#include "place_halos.h"
+//#include "place_halos.h"
 #include "allvars.h"
 #include "proto.h"
  
@@ -112,13 +112,13 @@ void ComputeLocalProb(double LocalProb, double *Pstart, double *Pend){
 //and returns a list of halo positions and radii (HaloX,HaloY,HaloZ,HaloR)
 int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 		float rho_ref, long seed, float mp, int nthreads, double *alpha, double *fvel, double *Malpha,
-		long Nalpha,float recalc_frac, float **HaloX, float **HaloY, float *HaloZ, float **HaloVX,
-		float **HaloVY, float **HaloVZ,float **HaloR,float L,long **ListOfPart, 
+		long Nalpha,float recalc_frac, float **HaloX, float **HaloY,  float **HaloZ,float **HaloVX, 
+		float **HaloVY,  float **HaloVZ, float **HaloM, float **HaloR,float L,long **ListOfPart, 
 		long *NPartPerCell){
 
 
-fprintf(stderr,"\tThis is place_halos.c\n");
-
+	fprintf(stderr,"\tThis is place_halos.c\n");
+	
 //Initiallising -------------------------------------------------
 	long i,j,k,lin_ijk, Nmin;
 	long *count,trials;
@@ -135,10 +135,10 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 	double *MassLeft;
 	double *CumulativeProb; 
 	long *ListOfHalos,  *NHalosPerCellStart, *NHalosPerCellEnd;
-	long Nhalos;
+	long Nhalos, NlocalHalos=0;
 	int recalc;
 
-	double Pstart,Pend;
+	double Pstart,Pend,draw;
 
 	float diff;
 	time_t t5;
@@ -161,18 +161,17 @@ fprintf(stderr,"\tThis is place_halos.c\n");
 	NTotCells = Nlin*Nlin*Nx;
 
 	
-	//Allocate memory for the arrays 
+	//Allocate memory for the arrays
 	MassLeft = (double *) calloc(NTotCells,sizeof(double));
   	if(MassLeft == NULL) {
     		fprintf(stderr,"\tplace_halos(): could not allocate %ld array for MassLeft[]\nABORTING",NTotCells);
     		exit(-1);
-	}	
+	}
 	NHalosPerCellStart = (long *) calloc(NTotCells,sizeof(long));
   	if(NHalosPerCellStart == NULL) {
     		fprintf(stderr,"\tplace_halos(): could not allocate %ld array for NHalosPerCell[]\nABORTING",NTotCells);
     		exit(-1);
 	}
-
   	NHalosPerCellEnd = (long *) calloc(NTotCells,sizeof(long));
   	if(NHalosPerCellEnd == NULL) {
     		fprintf(stderr,"\tplace_halos(): could not allocate %ld array for NHalosPerCell[]\nABORTING",NTotCells);
@@ -336,7 +335,19 @@ if (ThisTask==0){
 #ifdef VERB
 	if (ThisTask!=0) fprintf(stderr,"\n\tcase 0, TotProb=%e\n",TotProb);
 #endif
-
+	int EstHalos = (int) (Nend*(Pend-Pstart) + sqrt(Nend*(Pend-Pstart))*4); //mean+4sigmas
+	(*HaloX)  = (float *) calloc(EstHalos,sizeof(float ));
+	(*HaloY)  = (float *) calloc(EstHalos,sizeof(float ));
+	(*HaloZ)  = (float *) calloc(EstHalos,sizeof(float ));
+	(*HaloVX) = (float *) calloc(EstHalos,sizeof(float ));
+	(*HaloVY) = (float *) calloc(EstHalos,sizeof(float ));
+	(*HaloVZ) = (float *) calloc(EstHalos,sizeof(float ));
+	(*HaloR) = (float *) calloc(EstHalos,sizeof(float ));
+	(*HaloM) = (float *) calloc(EstHalos,sizeof(float ));
+	if(*HaloX == NULL || *HaloY == NULL ||*HaloZ == NULL ||*HaloVX == NULL ||*HaloVY == NULL ||*HaloVZ == NULL || *HaloM == NULL || *HaloR == NULL ) {
+		fprintf(stderr,"Error of memory for alo coords\n");	
+		exit(0);
+	}
 
 #ifdef VERB
 	if (ThisTask!=0){
@@ -359,7 +370,8 @@ if (ThisTask==0){
 exit(0);
 	//Place one by one all the haloes (assumed to be ordered from the most massive to the least massive)
 	for (ihalo=0;ihalo<Nend;ihalo++){
-
+	   draw = (double) rand()/RAND_MAX;
+	   if (draw>Pstart && draw<Pend){ //if it corresponds to this task
 		#ifdef DEBUG
 		fprintf(stderr,"\n\t- Halo %ld ",ihalo);
 		#endif
@@ -460,27 +472,27 @@ exit(0);
 				break;
 			}
 
-               		HaloX[ihalo] = PartX[ipart];
-               		HaloY[ihalo] = PartY[ipart];
-               		HaloZ[ihalo] = PartZ[ipart];
+               		(*HaloX)[NlocalHalos] = P[ipart].Pos[0];
+               		(*HaloY)[NlocalHalos] = P[ipart].Pos[1];
+               		(*HaloZ)[NlocalHalos] = P[ipart].Pos[2];
 			#ifdef DEBUG
-			fprintf(stderr,"HaloX=%f PartX=%f\n",HaloX[ihalo],PartX[ipart]);
+//			fprintf(stderr,"HaloX=%f PartX=%f\n",(*HaloX)[NlocalHalos],(*PartX)[ipart]);
 			#endif
 
 			if (use_vel==1){
-               			HaloVX[ihalo] = fvel_i * PartVX[ipart];
-               			HaloVY[ihalo] = fvel_i * PartVY[ipart];
-               			HaloVZ[ihalo] = fvel_i * PartVZ[ipart];
+               			(*HaloVX)[NlocalHalos] = fvel_i * P[ipart].Vel[0];
+               			(*HaloVY)[NlocalHalos] = fvel_i * P[ipart].Vel[1];
+               			(*HaloVZ)[NlocalHalos] = fvel_i * P[ipart].Vel[2];
 			}
 			R=R_from_mass(HaloMass[ihalo],rho_ref);
-			HaloR[ihalo]= R;
-
+			(*HaloR)[NlocalHalos]= R;
+			(*HaloM)[NlocalHalos]=HaloMass[ihalo];
 			#ifdef NO_EXCLUSION
 			  	check = already_chosen[part];
 				already_chosen[ipart]=1;
 			#else
 			//Third, check that is not overlapping a previous halo
-			check = check_HaloR_in_mesh(ihalo,HaloX,HaloY,HaloZ,HaloR,i,j,k,ListOfHalos,NHalosPerCellStart,NHalosPerCellEnd,r);
+			check = check_HaloR_in_mesh(NlocalHalos,*HaloX,*HaloY,*HaloZ,*HaloR,i,j,k,ListOfHalos,NHalosPerCellStart,NHalosPerCellEnd,r);
 			#endif
 			
 
@@ -528,17 +540,27 @@ exit(0);
 		fprintf(stderr,"\tAfter: Mcell=%e, CProbCell=%e, TotProb=%e.   , Mhalo=%e. CProb[last]=%e\n",MassLeft[lin_ijk],CumulativeProb[lin_ijk],TotProb,Mhalo,CumulativeProb[NTotCells-1]);
 		#endif
 		#ifdef DEBUG
-		fprintf(stderr,"\thalo %ld assigned to particle %ld at [%f,%f,%f]. R= %f, M= %e\n",ihalo,ipart,HaloX[ihalo],HaloY[ihalo],HaloZ[ihalo],R,Mhalo);
+		fprintf(stderr,"\thalo %ld assigned to particle %ld at [%f,%f,%f]. R= %f, M= %e\n",ihalo,ipart,HaloX[NlocalHalos],HaloY[NlocalHalos],HaloZ[NlocalHalos],R,Mhalo);
 		#endif
 		#ifdef DEBUG
-		fprintf(stderr,"HaloX=%f PartX=%f\n",HaloX[ihalo],PartX[ipart]);
+		//fprintf(stderr,"HaloX=%f PartX=%f\n",HaloX[NlocalHalos],PartX[ipart]);
 		#endif
 
-		ListOfHalos[NHalosPerCellEnd[lin_ijk]]=ihalo;
+		ListOfHalos[NHalosPerCellEnd[lin_ijk]]=NlocalHalos;
 		NHalosPerCellEnd[lin_ijk]++;
-
+		NlocalHalos++;
+	   }//if(this task)
+	  
 	}//for(ihalo=Nstart:Nend)
 //----------------------------------- Haloes Placed
+	(*HaloX)  = (float *) realloc(HaloX,NlocalHalos*sizeof(float));
+	(*HaloY)  = (float *) realloc(HaloY,NlocalHalos*sizeof(float));
+	(*HaloZ)  = (float *) realloc(HaloZ,NlocalHalos*sizeof(float));
+	(*HaloVX) = (float *) realloc(HaloVX,NlocalHalos*sizeof(float));
+	(*HaloVY) = (float *) realloc(HaloVY,NlocalHalos*sizeof(float));
+	(*HaloVZ) = (float *) realloc(HaloVZ,NlocalHalos*sizeof(float));
+	(*HaloR)  = (float *) realloc(HaloR,NlocalHalos*sizeof(float));
+	(*HaloM)  = (float *) realloc(HaloM,NlocalHalos*sizeof(float));
 
 	fprintf(stderr,"\t... placement Done!\n");
 	fprintf(stderr,"\t\tTOTAL NUMBER OF RE-CALCULATIONS: %ld\n",n_recalc);
@@ -565,7 +587,7 @@ exit(0);
 #ifdef MASS_OF_PARTS
 //	free(excluded); free(Nexcluded);
 #endif
-	return 0;
+	return NlocalHalos;
 }
 //end of place_halos()
 

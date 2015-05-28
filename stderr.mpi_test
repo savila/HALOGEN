@@ -1,0 +1,332 @@
+
+*******************************************************************
+**                                                               **
+**            =        HALOGEN-2LPT v1.0         =               **
+**                                                               **
+**                                                               **
+**                                            let there be dark  **
+*******************************************************************
+
+#def VERB
+#def DEBUG 
+#def HALF_EXCLUSION
+#def NDENS
+
+Reading 2LPT input file...
+...2LPT input file read
+
+
+Reading HALOGEN input file...
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	MassFunctionFile: examples/FULL_HALOGEN/data/HMF_Behroozi_z0.0.dat
+	OutputFile: examples/FULL_HALOGEN/output/GOLIAT.halos
+	NCellsLin: 256
+	alphaFile: examples/FULL_HALOGEN/data/M-alpha.txt
+	recalc_frac: 1.000000
+	nthreads: 16
+	rho_ref: crit
+	Overdensity: 200.000000
+	Ndens: 2.000000e-04.
+	Seed: 1422358203
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+	Number of parameters set: 10
+... HALOGEN file read correctly!
+
+Initializing 2LPT...
+	found 810 pairs of values in input spectrum table
+	Normalization of spectrum in file: Sigma8 = 3.51655
+	Normalization adjusted to Sigma8=0.8 (Normfac=0.0517542)
+Task=0 Local_nx=32
+Task=1 Local_nx=32
+Task=2 Local_nx=32
+Task=3 Local_nx=32
+Task=4 Local_nx=32
+Task=5 Local_nx=32
+Task=6 Local_nx=32
+Task=7 Local_nx=32
+Task=8 Local_nx=32
+Task=9 Local_nx=32
+Task=10 Local_nx=32
+Task=11 Local_nx=32
+Task=12 Local_nx=32
+Task=13 Local_nx=32
+Task=14 Local_nx=32
+Task=15 Local_nx=32
+	allocated 64.25 Mbyte on Task 0
+	reading Lagrangian glass file...
+	reading 'examples/FULL_HALOGEN/data/glass1_le' with 1 particles
+	Nglass= 1
+	8388608 particles on task=0  (slabs=32)
+	8388608 particles on task=1  (slabs=32)
+	8388608 particles on task=2  (slabs=32)
+	8388608 particles on task=3  (slabs=32)
+	8388608 particles on task=4  (slabs=32)
+	8388608 particles on task=5  (slabs=32)
+	8388608 particles on task=6  (slabs=32)
+	8388608 particles on task=7  (slabs=32)
+	8388608 particles on task=8  (slabs=32)
+	8388608 particles on task=9  (slabs=32)
+	8388608 particles on task=10  (slabs=32)
+	8388608 particles on task=11  (slabs=32)
+	8388608 particles on task=12  (slabs=32)
+	8388608 particles on task=13  (slabs=32)
+	8388608 particles on task=14  (slabs=32)
+	8388608 particles on task=15  (slabs=32)
+	Total number of particles  = 0134217728
+... initialization done!
+
+Computing displacement fields...
+	start computing displacement fields...
+	vel_prefac= 45.5846, vel_prefac2= 94.6444,  hubble_a=100 fom=0.455846 
+	allocated 198.773 Mbyte on Task 0
+	starting axes=3...
+	Done Zeldovich.
+	allocated 66.2578 Mbyte on Task 0
+	allocated 66.2578 Mbyte on Task 0
+	allocated 66.2578 Mbyte on Task 0
+	allocated 66.2578 Mbyte on Task 0
+	allocated 66.2578 Mbyte on Task 0
+	allocated 66.2578 Mbyte on Task 0
+	Fourier transforming displacement gradient...
+	Done.
+	Fourier transforming second order source...	Done.
+	Fourier transforming displacements, axis 0.
+	Fourier transforming displacements, axis 1.
+	Fourier transforming displacements, axis 2.
+	Maximum displacement: 29.9826 kpc/h, in units of the part-spacing= 15.3511
+...done with displacement fields
+
+Distributing particles in grid... 
+	 Note: 0.003906% of extra memory used
+	 Note: 0.003906% of extra memory used
+	 Note: 0.003906% of extra memory used
+	 Note: 0.003906% of extra memory used
+	L=1000.000000, invL=0.001000, Nlin=256
+	 Note: 0.003906% of extra memory used
+	L=1000.000000, invL=0.001000, Nlin=256
+	 Note: 0.003906% of extra memory used
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	 Counters allocated 
+
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	 Note: 0.003906% of extra memory used
+	 Note: 0.003906% of extra memory used
+	 Note: 0.003906% of extra memory used
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	 Note: 0.003906% of extra memory used
+	L=1000.000000, invL=0.001000, Nlin=256
+	 Note: 0.003906% of extra memory used
+	 Note: 0.003906% of extra memory used
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	 Note: 0.003906% of extra memory used
+	 Note: 0.003906% of extra memory used
+	 Note: 0.003906% of extra memory used
+	 Note: 0.003906% of extra memory used
+	 Counters allocated 
+
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	L=1000.000000, invL=0.001000, Nlin=256
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	L=1000.000000, invL=0.001000, Nlin=256
+	 Counters allocated 
+
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	L=1000.000000, invL=0.001000, Nlin=256
+	 Counters allocated 
+
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	L=1000.000000, invL=0.001000, Nlin=256
+	...NPartPerCell allocaled, continue...
+	...NPartPerCell allocaled, continue...
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+	...ListOFPART allocaled, continue...
+	 Counters allocated 
+
+[taurus:36602] *** Process received signal ***
+[taurus:36602] Signal: Segmentation fault (11)
+[taurus:36602] Signal code: Address not mapped (1)
+[taurus:36602] Failing at address: 0x1a33000
+[taurus:36607] *** Process received signal ***
+[taurus:36607] Signal: Segmentation fault (11)
+[taurus:36607] Signal code: Address not mapped (1)
+[taurus:36607] Failing at address: 0x2cc0000
+[taurus:36607] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2b41b331ccb0]
+[taurus:36607] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36607] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36607] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2b41b354b76d]
+[taurus:36607] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36607] *** End of error message ***
+[taurus:36602] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2ae814dabcb0]
+[taurus:36602] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36602] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36602] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2ae814fda76d]
+[taurus:36602] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36602] *** End of error message ***
+[taurus:36601] *** Process received signal ***
+[taurus:36601] Signal: Segmentation fault (11)
+[taurus:36601] Signal code: Address not mapped (1)
+[taurus:36601] Failing at address: 0x236d000
+[taurus:36601] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2b387e6b0cb0]
+[taurus:36601] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36601] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36601] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2b387e8df76d]
+[taurus:36601] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36601] *** End of error message ***
+[taurus:36606] *** Process received signal ***
+[taurus:36606] Signal: Segmentation fault (11)
+[taurus:36606] Signal code: Address not mapped (1)
+[taurus:36606] Failing at address: 0x1a05000
+[taurus:36606] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2ab5a565ecb0]
+[taurus:36606] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36606] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36606] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2ab5a588d76d]
+[taurus:36606] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36606] *** End of error message ***
+[taurus:36603] *** Process received signal ***
+[taurus:36603] Signal: Segmentation fault (11)
+[taurus:36603] Signal code: Address not mapped (1)
+[taurus:36603] Failing at address: 0x28fd000
+[taurus:36608] *** Process received signal ***
+[taurus:36608] Signal: Segmentation fault (11)
+[taurus:36608] Signal code: Address not mapped (1)
+[taurus:36608] Failing at address: 0x327e000
+[taurus:36603] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2abc8aa6dcb0]
+[taurus:36603] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36603] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36603] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2abc8ac9c76d]
+[taurus:36603] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36603] *** End of error message ***
+[taurus:36608] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2b22c2661cb0]
+[taurus:36608] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36608] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36608] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2b22c289076d]
+[taurus:36608] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36608] *** End of error message ***
+[taurus:36613] *** Process received signal ***
+[taurus:36613] Signal: Segmentation fault (11)
+[taurus:36613] Signal code: Address not mapped (1)
+[taurus:36613] Failing at address: 0x205e000
+[taurus:36613] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2b9c119d6cb0]
+[taurus:36613] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36613] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36613] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2b9c11c0576d]
+[taurus:36613] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36613] *** End of error message ***
+[taurus:36611] *** Process received signal ***
+[taurus:36611] Signal: Segmentation fault (11)
+[taurus:36611] Signal code: Address not mapped (1)
+[taurus:36611] Failing at address: 0x31dc000
+[taurus:36611] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2aefff221cb0]
+[taurus:36611] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36611] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36611] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2aefff45076d]
+[taurus:36611] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36611] *** End of error message ***
+[taurus:36604] *** Process received signal ***
+[taurus:36604] Signal: Segmentation fault (11)
+[taurus:36604] Signal code: Address not mapped (1)
+[taurus:36604] Failing at address: 0x1ff6000
+[taurus:36605] *** Process received signal ***
+[taurus:36605] Signal: Segmentation fault (11)
+[taurus:36605] Signal code: Address not mapped (1)
+[taurus:36605] Failing at address: 0x31b1000
+[taurus:36604] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2ba7a725ecb0]
+[taurus:36604] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36604] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36604] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2ba7a748d76d]
+[taurus:36604] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36604] *** End of error message ***
+[taurus:36605] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2b254490bcb0]
+[taurus:36605] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36605] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36605] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2b2544b3a76d]
+[taurus:36605] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36605] *** End of error message ***
+[taurus:36614] *** Process received signal ***
+[taurus:36614] Signal: Segmentation fault (11)
+[taurus:36614] Signal code: Address not mapped (1)
+[taurus:36614] Failing at address: 0x25de000
+[taurus:36614] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0xfcb0) [0x2b6015363cb0]
+[taurus:36614] [ 1] 2LPT-HALOGEN(distribute_part+0x508) [0x40c998]
+[taurus:36614] [ 2] 2LPT-HALOGEN(main+0x3b3) [0x409383]
+[taurus:36614] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x2b601559276d]
+[taurus:36614] [ 4] 2LPT-HALOGEN() [0x409b91]
+[taurus:36614] *** End of error message ***
+	Task 9, sending 370325 particles
+	Task 9, sending x[370324]=641.500488 
+	Task 10, sending 297902 particles
+	Task 10, sending x[297901]=689.495361 
+	Task 14, sending 302826 particles
+	Task 14, sending x[302825]=938.566650 
+	Task 15, sending 383624 particles
+	Task 15, sending x[383623]=0.751038 
+--------------------------------------------------------------------------
+mpiexec noticed that process rank 6 with PID 36606 on node taurus exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
+Command exited with non-zero status 139
+1148.92user 77.52system 1:19.06elapsed 1551%CPU (0avgtext+0avgdata 3719616maxresident)k
+1112inputs+72400outputs (82major+3841959minor)pagefaults 0swaps

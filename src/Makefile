@@ -5,11 +5,11 @@ EXEC   = 2LPT-HALOGEN
 CUTE_OBJ    = $(addprefix cute.src/,common.o define.o io.o neighbors.o correlator.o)
 
 # objects that can be either 2lpt-only or not
-2LPT_ONLY_OBJ = allvars.o read_param.o read_glass.o save.o
-2LPT_OBJ   = power.o $(2LPT_ONLY_OBJ) $(addprefix nrsrc/,nrutil.o qromb.o polint.o trapzd.o) 
+2LPT_ONLY_OBJ = read_param.o read_glass.o save.o place_halos.o
+2LPT_OBJ   = allvars.o power.o $(2LPT_ONLY_OBJ) $(addprefix nrsrc/,nrutil.o qromb.o polint.o trapzd.o) 
 
-HLGN_OBJ   = read_snapshot.o place_halos.o populate_mass_function.o
-HLGN_ONLY_OBJ   = place_halos.o populate_mass_function.o
+HLGN_OBJ   = read_snapshot.o populate_mass_function.o
+HLGN_ONLY_OBJ   = populate_mass_function.o
 FIT_OBJ    = $(HLGN_OBJ) correlate.o
 ALL_OBJ    = $(CUTE_OBJ) $(2LPT_OBJ) $(FIT_OBJ)
 
