@@ -69,15 +69,26 @@ long check_limit(long i, long N){
 
 void ComputeLocalProb(double LocalProb, double *Pstart, double *Pend){
   	MPI_Status status;
+	double temp;
 	if (ThisTask!=0){
+		#ifdef DEBUG 
+		fprintf(stderr,"\tTask %d, sending P=%e \n",ThisTask,LocalProb);
+		#endif
 		MPI_Send( &LocalProb, 1, MPI_DOUBLE, 0,5555, MPI_COMM_WORLD); 
+
+		#ifdef DEBUG 
+		fprintf(stderr,"\tTask %d, sent\n",ThisTask);
+		#endif
 
 		MPI_Recv( Pstart, 1, MPI_DOUBLE, 0, 5544, MPI_COMM_WORLD, &status);
 		MPI_Recv( Pend, 1, MPI_DOUBLE, 0, 5566, MPI_COMM_WORLD, &status);
+		#ifdef DEBUG 
+		fprintf(stderr,"\tTask %d, got %e<P<%e \n",ThisTask,*Pstart,*Pend);
+		#endif
 	}
 	else{
 		int i;
-		double *ProbSlice, temp, total;
+		double *ProbSlice, total;
 	
 		ProbSlice = (double *) malloc(NTask*sizeof(double));
 		ProbSlice[0] = LocalProb;
@@ -85,14 +96,23 @@ void ComputeLocalProb(double LocalProb, double *Pstart, double *Pend){
 
 		for(i=1;i<NTask;i++){
 			MPI_Recv( &temp, 1, MPI_DOUBLE, i, 5555, MPI_COMM_WORLD, &status);
+			#ifdef DEBUG 
+			fprintf(stderr,"\tTask %d received P=%e \n",ThisTask,temp);
+			#endif
 			ProbSlice[i]=ProbSlice[i-1]+temp;
 			total+=temp;
 		}	
 		ProbSlice[0]=ProbSlice[0]/total;
 		for(i=1;i<NTask;i++){
 			ProbSlice[i]=ProbSlice[i]/total;
-			MPI_Send( &(ProbSlice[i-1]), i, MPI_DOUBLE, 0,5544, MPI_COMM_WORLD); 
-			MPI_Send( &(ProbSlice[i]), i, MPI_DOUBLE, 0,5566, MPI_COMM_WORLD); 	
+			#ifdef DEBUG 
+			fprintf(stderr,"\tTask %d sending P[%d]=%f to Task %d\n",ThisTask,i,ProbSlice[i],i);
+			#endif
+			MPI_Send( &(ProbSlice[i-1]), 1, MPI_DOUBLE, i,5544, MPI_COMM_WORLD); 
+			#ifdef DEBUG 
+			fprintf(stderr,"\tTask %d sending P[%d]=%f to Task %d \n",ThisTask,i-1,ProbSlice[i-1],i);
+			#endif
+			MPI_Send( &(ProbSlice[i]), 1, MPI_DOUBLE, i,5566, MPI_COMM_WORLD); 	
 		}
 		(*Pstart)=0;
 		(*Pend)=ProbSlice[0];
@@ -117,7 +137,7 @@ int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 		long *NPartPerCell){
 
 
-	fprintf(stderr,"\tThis is place_halos.c\n");
+	fprintf(stderr,"\tThis is place_halos.c Task %d\n",ThisTask);
 	
 //Initiallising -------------------------------------------------
 	long i,j,k,lin_ijk, Nmin;
@@ -140,9 +160,9 @@ int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 
 	double Pstart,Pend,draw;
 
-	float diff;
 	time_t t5;
 	#ifdef VERB
+	float diff;
 	time_t t1,t3,t4,t4_5;
 	#endif
 
@@ -248,10 +268,10 @@ int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 	if (L/NCells<R_from_mass(HaloMass[0],rho_ref)){
 		fprintf(stderr,"WARNING: cell size is smaller than the radius of the biggest halo. Using r=%i. This may be problematic\n",r);
 	}
+	t1=time(NULL);
 if (ThisTask==0){
 #ifdef VERB
 	fprintf(stderr,"\tR_max=%f, lcell=%f, r=%d\n",R_from_mass(HaloMass[0],rho_ref),(L/NCells),r);
-	t1=time(NULL);
  	diff = difftime(t1,t0);
 	fprintf(stderr,"\ttime of initialisation %f\n",diff);
 #endif
@@ -331,11 +351,13 @@ if (ThisTask==0){
 	t4=time(NULL);
 #endif
 	TotProb = ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);	
+
 	ComputeLocalProb(TotProb,&Pstart,&Pend);
+	fprintf(stderr,"Task %d/%d. Prob in [%f,%f]\n",ThisTask,NTask,Pstart,Pend);
 #ifdef VERB
 	if (ThisTask!=0) fprintf(stderr,"\n\tcase 0, TotProb=%e\n",TotProb);
 #endif
-	int EstHalos = (int) (Nend*(Pend-Pstart) + sqrt(Nend*(Pend-Pstart))*4); //mean+4sigmas
+	int EstHalos = (int) (Nend*(Pend-Pstart) + sqrt(Nend*(Pend-Pstart))*4.0); //mean+4sigmas
 	(*HaloX)  = (float *) calloc(EstHalos,sizeof(float ));
 	(*HaloY)  = (float *) calloc(EstHalos,sizeof(float ));
 	(*HaloZ)  = (float *) calloc(EstHalos,sizeof(float ));
@@ -351,13 +373,12 @@ if (ThisTask==0){
 
 #ifdef VERB
 	if (ThisTask!=0){
-        fprintf(stderr,"\tNumber of alphas: %ld\n",Nalpha);
-        fprintf(stderr,"\tUsing alpha_%ld=%f for M>%e\n",i_alpha,exponent,Mchange);
-	t4_5=time(NULL);
- 	diff = difftime(t4_5,t4);
-	fprintf(stderr,"\tprobabilty computed in %f secods\n",diff);
+        	fprintf(stderr,"\tNumber of alphas: %ld\n",Nalpha);
+        	fprintf(stderr,"\tUsing alpha_%ld=%f for M>%e\n",i_alpha,exponent,Mchange);
+		t4_5=time(NULL);
+ 		diff = difftime(t4_5,t4);
+		fprintf(stderr,"\tprobabilty computed in %f secods\n",diff);
 	}
-	fprintf(stderr,"Task %d/%d. Prob in [%f,%f]\n",ThisTask,NTask,Pstart,Pend);
 #endif
 // ----------------------------------------- Computed Probability
 
@@ -367,13 +388,13 @@ if (ThisTask==0){
 #ifdef VERB
 	fprintf(stderr,"\n\tPlacing Halos...\n\n");
 #endif
-exit(0);
 	//Place one by one all the haloes (assumed to be ordered from the most massive to the least massive)
 	for (ihalo=0;ihalo<Nend;ihalo++){
 	   draw = (double) rand()/RAND_MAX;
 	   if (draw>Pstart && draw<Pend){ //if it corresponds to this task
 		#ifdef DEBUG
 		fprintf(stderr,"\n\t- Halo %ld ",ihalo);
+		fprintf(stderr,"dice:%f -> Task: %d\n",draw,ThisTask);
 		#endif
 		#ifdef VERB
 		if (ihalo%(Nend/10)==0 && ihalo>0){
@@ -540,7 +561,7 @@ exit(0);
 		fprintf(stderr,"\tAfter: Mcell=%e, CProbCell=%e, TotProb=%e.   , Mhalo=%e. CProb[last]=%e\n",MassLeft[lin_ijk],CumulativeProb[lin_ijk],TotProb,Mhalo,CumulativeProb[NTotCells-1]);
 		#endif
 		#ifdef DEBUG
-		fprintf(stderr,"\thalo %ld assigned to particle %ld at [%f,%f,%f]. R= %f, M= %e\n",ihalo,ipart,HaloX[NlocalHalos],HaloY[NlocalHalos],HaloZ[NlocalHalos],R,Mhalo);
+		fprintf(stderr,"\thalo %ld assigned to particle %ld at [%f,%f,%f]. R= %f, M= %e\n",ihalo,ipart,(*HaloX)[NlocalHalos],(*HaloY)[NlocalHalos],(*HaloZ)[NlocalHalos],R,Mhalo);
 		#endif
 		#ifdef DEBUG
 		//fprintf(stderr,"HaloX=%f PartX=%f\n",HaloX[NlocalHalos],PartX[ipart]);
@@ -553,16 +574,48 @@ exit(0);
 	  
 	}//for(ihalo=Nstart:Nend)
 //----------------------------------- Haloes Placed
-	(*HaloX)  = (float *) realloc(HaloX,NlocalHalos*sizeof(float));
-	(*HaloY)  = (float *) realloc(HaloY,NlocalHalos*sizeof(float));
-	(*HaloZ)  = (float *) realloc(HaloZ,NlocalHalos*sizeof(float));
-	(*HaloVX) = (float *) realloc(HaloVX,NlocalHalos*sizeof(float));
-	(*HaloVY) = (float *) realloc(HaloVY,NlocalHalos*sizeof(float));
-	(*HaloVZ) = (float *) realloc(HaloVZ,NlocalHalos*sizeof(float));
-	(*HaloR)  = (float *) realloc(HaloR,NlocalHalos*sizeof(float));
-	(*HaloM)  = (float *) realloc(HaloM,NlocalHalos*sizeof(float));
-
+	
 	fprintf(stderr,"\t... placement Done!\n");
+	fprintf(stderr,"\t Task %d Halos %ld\n",ThisTask,NlocalHalos);
+/*
+	(*HaloX)  = (float *) realloc(HaloX,NlocalHalos*sizeof(float));
+	if ((*HaloX)==NULL){
+		fprintf(stderr,"ERROR: couldnt realloc HaloX\n");
+	}
+	else {
+		fprintf(stderr,"HaloX re-allocated\n");
+		fprintf(stderr,"HaloX[0]=%f\n",(*HaloX)[0]);
+		fprintf(stderr,"HaloX[%d]=%f\n",(*HaloX)[NlocalHalos-1]);
+	}
+	(*HaloY)  = (float *) realloc(HaloY,NlocalHalos*sizeof(float));
+	if ((*HaloY)==NULL){
+		fprintf(stderr,"ERROR: couldnt realloc HaloY\n");
+	}
+	(*HaloZ)  = (float *) realloc(HaloZ,NlocalHalos*sizeof(float));
+	if ((*HaloZ)==NULL){
+		fprintf(stderr,"ERROR: couldnt realloc HaloZ\n");
+	}
+	(*HaloVX) = (float *) realloc(HaloVX,NlocalHalos*sizeof(float));
+	if ((*HaloVX)==NULL){
+		fprintf(stderr,"ERROR: couldnt realloc HaloVX\n");
+	}
+	(*HaloVY) = (float *) realloc(HaloVY,NlocalHalos*sizeof(float));
+	if ((*HaloVY)==NULL){
+		fprintf(stderr,"ERROR: couldnt realloc HaloVY\n");
+	}
+	(*HaloVZ) = (float *) realloc(HaloVZ,NlocalHalos*sizeof(float));
+	if ((*HaloVZ)==NULL){
+		fprintf(stderr,"ERROR: couldnt realloc HaloVZ\n");
+	}
+	(*HaloR)  = (float *) realloc(HaloR,NlocalHalos*sizeof(float));
+	if ((*HaloR)==NULL){
+		fprintf(stderr,"ERROR: couldnt realloc HaloR\n");
+	}
+	(*HaloM)  = (float *) realloc(HaloM,NlocalHalos*sizeof(float));
+	if ((*HaloM)==NULL){
+		fprintf(stderr,"ERROR: couldnt realloc HaloM\n");
+	}
+*/
 	fprintf(stderr,"\t\tTOTAL NUMBER OF RE-CALCULATIONS: %ld\n",n_recalc);
 
 #ifdef VERB
