@@ -30,7 +30,6 @@ DEFS            +=      -DHALF_EXCLUSION		#Haloes are allowed to overlap. But th
 #DEFS            +=      -DFULL_EXCLUSION		#Haloes are not allowed to overlap.
 
 
-DEFS		+= -DFULL_MPI
 
 #How to define number density
 DEFS		+=	-DNDENS				#is set,	input parameter Mmin defines the halo number density in [Mpc/h]^{-3}.
