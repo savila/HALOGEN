@@ -21,7 +21,7 @@ HALOGEN has been developped by Santiago Avila and Steven Murray
 #include <string.h>
 #include "read_snapshot.h"
 #include "populate_mass_function.h"
-//#include "place_halos.h"
+#include "place_halos.h"
 
 
 #include "allvars.h"
@@ -99,14 +99,13 @@ int main(int argc, char **argv) {
   	MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
   	MPI_Comm_size(MPI_COMM_WORLD, &NTask);
 
-  	float  mpart, *hx, *hy, *hz, *hvx,*hvy,*hvz,*hR,*hM;
+  	float Lbox, mpart, *x, *y, *z, *vx,*vy,*vz,*hx, *hy, *hz, *hvx,*hvy,*hvz,*hR, om_m;
         char tlpt_filename[256],halogen_filename[256];
-	char chtemp[200];
-        long NTotPart, Nhalos, NlocalHalos, **ListOfParticles, *NPartPerCell;
+        long Npart, Nhalos, **ListOfParticles, *NPartPerCell;
         float *HaloMass, rho;
-	int Nx;
 
         int number_exclusion=0;
+
 
   	if(ThisTask == 0) 
   	{
@@ -141,7 +140,9 @@ int main(int argc, char **argv) {
 		#ifdef NDENS
 	        fprintf(stderr,"#def NDENS\n");
 		#endif
+	//FLAGS to be unified
   	}
+
 	#ifdef FULL_EXCLUSION
         number_exclusion++;
 	#endif
@@ -164,8 +165,8 @@ int main(int argc, char **argv) {
     	{
       		if(ThisTask == 0)
 		{
-	  		fprintf(stderr, "\nParameters are missing.\n");
-	  		fprintf(stderr, "Usage: %s <2LPTParameterFile> <Halogen_input_file>\n\n",argv[0]);
+	  		fprintf(stdout, "\nParameters are missing.\n");
+	  		fprintf(stdout, "Usage: %s <2LPTParameterFile> <Halogen_input_file>\n\n",argv[0]);
 		}
       		MPI_Finalize();
       		exit(0);
@@ -185,23 +186,11 @@ int main(int argc, char **argv) {
 	}
         if(ThisTask == 0) fprintf(stderr,"... HALOGEN file read correctly!\n\n");
 
-	Nx = Nlin/NTask;
-	if (Nx*NTask!=Nlin){
-                if(ThisTask == 0) fprintf(stderr,"ERROR: Ncells should be an integer multiple of the MPI tasks used\n");
-                MPI_Finalize();
-                exit(0);
-	}
-	if (GlassTileFac%NTask!=0)
-                if(ThisTask == 0) fprintf(stderr,"WARNING: it is reccommended that GlassTileFac is an integer multiple of the MPI tasks uses (this make cause troubles later on)\n");
-		
-		
-	
 	if(ThisTask == 0) fprintf(stderr,"Initializing 2LPT...\n");
   	set_units();
 	initialize_powerspectrum();
   	initialize_ffts();
   	read_glass(GlassFile);
-
 	if(ThisTask == 0) fprintf(stderr,"... initialization done!\n\n");
 
 	if(ThisTask == 0) fprintf(stderr,"Computing displacement fields...\n");
@@ -209,13 +198,12 @@ int main(int argc, char **argv) {
 	if(ThisTask == 0) fprintf(stderr,"...done with displacement fields\n\n");
 
 
+	 MPI_Barrier(MPI_COMM_WORLD);
 	//done with 2LPT, halogen starting
 
-  	NTotPart = (GlassTileFac * GlassTileFac * GlassTileFac);
-		
-
+ 
         if(ThisTask == 0) fprintf(stderr,"Distributing particles in grid... \n");
-        if (distribute_part(Nlin,Nx,&ListOfParticles,&NPartPerCell)==0) {
+        if (distribute_part(Nlin,nthreads,&x, &y, &z, &vx, &vy, &vz, &Npart, &Lbox, &om_m,&ListOfParticles,&NPartPerCell)==0) {
                 if(ThisTask == 0) 
 			fprintf(stderr,"...particles correctly distributed!\n\n");
 	}
@@ -223,44 +211,64 @@ int main(int argc, char **argv) {
                 fprintf(stderr,"ERROR: Something went wrong distributing the particles\n");
                 MPI_Finalize();
                 exit(0);
-	}
+        }
+
+
+  if(ThisTask == 0) 
+  {
+
+	
   	#ifdef DEBUG
 	int i,j,k,lin_ijk;	
-	for (i=0; i<Nx;i++)
+	for (i=0; i<Nlin;i++)
 	for (j=0; j<Nlin;j++)
 	for (k=0; k<Nlin;k++)	
 	{
 		lin_ijk = k+j*Nlin+i*Nlin*Nlin;
-		if ((i<3 || i>Nx-4) && (j<3 || j>Nlin-4) && (k<3 || k>Nlin-4))
-			if(ThisTask == 0) fprintf(stderr,"Npart[%d][%d][%d]=%ld\n",i,j,k,NPartPerCell[lin_ijk]);
+		if ((i<3 || i>Nlin-4) && (j<3 || j>Nlin-4) && (k<3 || k>Nlin-4))
+			fprintf(stderr,"Npart[%d][%d][%d]=%d\n",i,j,k,NPartPerCell[lin_ijk]);
 		if ((float)rand()/RAND_MAX<5.0e-8 && ListOfParticles[lin_ijk]>0){
-			if(ThisTask == 0) fprintf(stderr,"(%f,%f,%f) -> [%d,%d,%d]\n",P[ListOfParticles[lin_ijk][0]].Pos[0],P[ListOfParticles[lin_ijk][0]].Pos[1],P[ListOfParticles[lin_ijk][0]].Pos[2],i,j,k);
+			fprintf(stderr,"(%f,%f,%f) -> [%d,%d,%d]\n",x[ListOfParticles[lin_ijk][0]],y[ListOfParticles[lin_ijk][0]],z[ListOfParticles[lin_ijk][0]],i,j,k);
 		}
 	}
 	#endif
+   	mpart = rho_crit * om_m * Lbox*Lbox*Lbox /Npart;
 
-   	mpart = rho_crit*Omega*Box*Box*Box/NTotPart;	
+        #ifdef VERB
+        fprintf(stderr,"\n\tCheck: Npart=%ld, mpart=%e, Lbox=%f\n",Npart,mpart,Lbox);
+        fprintf(stderr,"\tx[0]= %f, y[0]= %f, z[0]= %f\n",(x)[0],(y)[0],(z)[0]);
+        fprintf(stderr,"\t      ...\n");
+        fprintf(stderr,"\tx[%ld]= %f, y[%ld]= %f, z[%ld]= %f\n\n",Npart-1,(x)[Npart-1],Npart-1,(y)[Npart-1],Npart-1,(z)[Npart-1]);
+        #endif
 
         if (seed<0){
-  		MPI_Barrier(MPI_COMM_WORLD);
                 seed = time(NULL);
-                fprintf(stderr,"Task %d, Seed used: %ld\n",ThisTask,seed);
+                fprintf(stderr,"Seed used: %ld\n",seed);
         }
-        if(ThisTask == 0) fprintf(stderr,"Generating Halo Masses...\n");
-        Nhalos = populate_mass_function(MassFunctionFile,Mmin,Box,&HaloMass,seed);
 
-        if (Nhalos<0){
+        //Generate the halo masses from the mass function
+        fprintf(stderr,"Generating Halo Masses...\n");
+        Nhalos = populate_mass_function(MassFunctionFile,Mmin,Lbox,&HaloMass,seed,nthreads);
+        if (Nhalos<0)
                 fprintf(stderr,"error: Couldnt create HaloMass array\n");
+        fprintf(stderr,"...Halo Masses Generated\n\n");
 
-	}
-        fprintf(stderr,"...%ld Halo Masses Generated\n\n",Nhalos);
+        //Allocalte memory for the halo XYZR vector
+        hx = (float *) calloc(Nhalos,sizeof(float));
+        hy = (float *) calloc(Nhalos,sizeof(float));
+        hz = (float *) calloc(Nhalos,sizeof(float));
+        hvx = (float *) calloc(Nhalos,sizeof(float));
+        hvy = (float *) calloc(Nhalos,sizeof(float));
+        hvz = (float *) calloc(Nhalos,sizeof(float));
+        hR = (float *) calloc(Nhalos,sizeof(float));
 
         //density at the boundary of a halo
         if (strcmp(rho_ref,"crit")==0)
                 rho = OVD*rho_crit;
         else
-                rho = OVD*rho_crit*Omega;
+                rho = OVD*rho_crit*om_m;
 
+        //place the halos
         fprintf(stderr,"Placing halos down...\n");
 
         // Check the M-alpha vector against produced halos.
@@ -273,12 +281,10 @@ int main(int argc, char **argv) {
                         exit(0);
                 }
         }
- 
-        NlocalHalos = place_halos(Nhalos,HaloMass, Nlin, Nx, rho,seed,mpart, nthreads,alpha_vec, fvel, Malpha, Nalpha,recalc_frac,&hx, &hy, &hz, &hvx,&hvy,&hvz,&hR,&hM,Box,ListOfParticles,NPartPerCell);
 
-	if (NlocalHalos>0){
-                fprintf(stderr,"...%ld halos placed correctly\n",NlocalHalos);
-	}
+        if (place_halos(Nhalos,HaloMass, Nlin, Npart, x, y, z, vx,vy,vz,Lbox, rho,seed,mpart, nthreads,alpha_vec, fvel, Malpha, Nalpha,recalc_frac,hx, hy, hz, hvx,hvy,hvz, hR,ListOfParticles,NPartPerCell)==0){
+                fprintf(stderr,"...halos placed correctly\n");
+        }
         else {
                 fprintf(stderr,"ERROR: Problem placing halos\n");
   		MPI_Finalize();
@@ -286,32 +292,32 @@ int main(int argc, char **argv) {
         }
         fprintf(stderr,"\n");
 
-
-	sprintf(chtemp,"%s.%d",OutputFile,ThisTask);
-	sprintf(OutputFile,"%s",chtemp);
-
         //writting output       
-        if(ThisTask == 0) fprintf(stderr,"Writing Halo catalogue...\n");
-        write_halogen_cat(OutputFile,hx,hy,hz,hvx,hvy,hvz,HaloMass,hR,NlocalHalos);
-        if(ThisTask == 0) fprintf(stderr,"...halo catalogue written in %s\n",OutputFile);
+        fprintf(stderr,"Writing Halo catalogue...\n");
+        write_halogen_cat(OutputFile,hx,hy,hz,hvx,hvy,hvz,HaloMass,hR,Nhalos);
+        fprintf(stderr,"...halo catalogue written in %s\n",OutputFile);
 
         free(hx);free(hy);free(hz);free(hR);
-        free(hvx);free(hvy);free(hvz);free(hM);
         free(alpha_vec); free(Malpha);
 
-	if(ThisTask == 0) {
-           fprintf(stderr,"\n*******************************************************************\n");
-           fprintf(stderr,"**                        ... and there were dark matter haloes  **\n");
-           fprintf(stderr,"*******************************************************************\n\n");
-	}
+
+        fprintf(stderr,"\n*******************************************************************\n");
+        fprintf(stderr,"**                        ... and there were dark matter haloes  **\n");
+        fprintf(stderr,"*******************************************************************\n\n");
+
  
 
-
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
 
   if(NumPart){
-    free(P);
+    free(partX);
+    free(partY);
+    free(partZ);
+    free(partVX);
+    free(partVY);
+    free(partVZ);
   }
  
 
@@ -813,15 +819,15 @@ void displacement_fields(void)
       
       for(n = 0; n < NumPart; n++)
 	{
-
+	      /*
 	      u = P[n].Pos[0] / Box * Nmesh;
 	      v = P[n].Pos[1] / Box * Nmesh;
 	      w = P[n].Pos[2] / Box * Nmesh;
-	      /*
+	      */
 	      u = partX[n] / Box * Nmesh;
 	      v = partY[n] / Box * Nmesh;
 	      w = partZ[n] / Box * Nmesh;
-	      */
+	      
 	      i = (int) u;
 	      j = (int) v;
 	      k = (int) w;
@@ -879,7 +885,7 @@ void displacement_fields(void)
 		    disp2[axes][(ii * Nmesh + jj) * (2 * (Nmesh / 2 + 1)) + kk] * f8;
 		  dis2 /= (float) nmesh3;
 	      
-		  
+/*		  
 #ifdef ONLY_ZA 	  
 		  P[n].Pos[axes] += dis;
 		  P[n].Vel[axes] = dis * vel_prefac;
@@ -889,8 +895,8 @@ void displacement_fields(void)
 #endif
 
 		  P[n].Pos[axes] = periodic_wrap(P[n].Pos[axes]);
-
-/*		  
+*/
+		  
 		  if (axes==0){
 			#ifdef ONLY_ZA
 		  	partX[n] += dis;
@@ -921,7 +927,7 @@ void displacement_fields(void)
 			#endif
 		  	partZ[n] = periodic_wrap(partZ[n]);
 		  }
-*/
+
 		  
 		  
 		  

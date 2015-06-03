@@ -1,7 +1,6 @@
 
 #include <gsl/gsl_rng.h>
 
-
 double GrowthFactor(double astart, double aend);
 void   print_spec(void);
 int    FatalError(int errnum);
@@ -48,15 +47,9 @@ double tk_eh(double k);
 size_t my_fread(void *ptr, size_t size, size_t nmemb, FILE * stream);
 size_t my_fwrite(void *ptr, size_t size, size_t nmemb, FILE * stream);
 
-void save_local_data(void);
-int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell);
+//void save_local_data(void);
+int distribute_part(int ,int ,float **, float **, float **, float **, float **, float **, long *, float *, float *, long ***,long **);
 void add_WDM_thermal_speeds(float *vel);
-
-int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
-		float rho_ref, long seed, float mp, int nthreads, double *alpha, double *fvel, double *Malpha,
-		long Nalpha,float recalc_frac, float **HaloX, float **HaloY, float **HaloZ, float **HaloVX,
-		float **HaloVY, float **HaloVZ,float **HaloR, float **HM,float L,long **ListOfPart, 
-		long *NPartPerCell);
 
 int compare_type(const void *a, const void *b);
 

@@ -21,18 +21,9 @@ typedef unsigned short int uint4byte;	/* Note: int has 8 Bytes on the T3E ! */
 typedef int int4byte;
 typedef unsigned int uint4byte;
 #endif
-/*
-typedef struct {
-	float X;
-	float Y;
-	float Z;
-	float VX;
-	float VY;
-	float VZ;
-	float R;
-	float M;
-} t_halo;
-*/
+
+
+
 extern struct io_header_1
 {
   uint4byte npart[6];      /*!< npart[1] gives the number of particles in the present file, other particle types are ignored */
@@ -91,7 +82,7 @@ extern int      *Slab_to_task;
 
 
 
-//#ifdef ONLY_2LPT 
+#ifdef ONLY_2LPT 
 extern struct part_data 
 {
   float Pos[3];
@@ -102,7 +93,6 @@ extern struct part_data
   long long ID;
 } *P;
 
-/*
 #else
 
 extern float *partX;
@@ -113,7 +103,7 @@ extern float *partVY;
 extern float *partVZ;
 extern unsigned long long *partID;
 #endif
-*/
+
 
 
 
