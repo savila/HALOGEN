@@ -1,0 +1,37 @@
+#******** HALOGEN input file *******#
+
+
+######### GENERAL INPUTS ########
+
+
+#Full path to the tabulated cumulative density function n(>M). Format: M[M_sun/h] n[(h/Mpc)^3]
+MassFunctionFile	examples/FULL_HALOGEN/data/HMF_Behroozi_z0.0.dat
+
+#Full Path to the output
+OutputFile	examples/FULL_HALOGEN/output/GOLIAT_run1.halos
+
+#Number of Cells per side of the grid used (lcell=Lbox/NCellsLin)
+NCellsLin	250
+
+#Full path to the tabulated alpha(Mass) relation. Format: alpha M[M_sun/h]
+alphaFile       examples/FULL_HALOGEN/data/M-alpha.txt  #if you did not run ./fit, use this one (downloaded)
+#alphaFile       examples/FITTING/output/GOLIAT/M-alpha.txt
+
+#Relative error allowed in CumulativeProb
+recalc_frac	1.0
+
+#number of OMP threads
+nthreads	16
+
+#Reference densisty: choose "crit" for rho_critical or "matter" for rho_matter
+rho_ref		crit
+
+#Density at which the edge of the halo is defined in units of rho_ref
+Overdensity	200
+
+#Minimum halo mass in units of M_sun/h     or (#ifdef NDENS) halo number density in [h/Mpc]^3
+#Mmin		8.75e12
+Mmin		2.0e-4
+
+#Random seed. If negative, synchronized with time.
+Seed		1422358204
