@@ -28,7 +28,7 @@ all: $(EXEC) halogen fit
 	-rm $(2LPT_ONLY_OBJ)
 	$(MAKE) 2LPT
 
-$(EXEC): main.c $(2LPT_OBJ) $(HLGN_OBJ) 
+$(EXEC): main.c $(2LPT_OBJ) $(HLGN_OBJ) $(2LPT_INCL)
 	$(CCMPI) $(CFLAGS) $(DEFS) $(2LPT_OBJ) $(HLGN_ONLY_OBJ) main.c $(ALL_INCL) $(ALL_LIB)  -o  $(EXEC)  
 
 $(2LPT_OBJ): %.o : %.c $(2LPT_INCL)

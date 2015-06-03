@@ -120,7 +120,7 @@ double minimize(double,double,double);
 float * compute_fvel(float *vx,float *vy,float *vz,float *nbvx,float *nbvy,float *nbvz,float *nbm);
 float vel_std(float *x, float* y, float*z, long start, long end);
 float vel_1D_std(float *x,int start, int end);
-int write_halogen_cat(char *filename, float *x, float *y, float *z, float *vx, float *vy, float *vz, float *M, float *R,long N, float *fvel, double *Mcuts);
+int write_halogen_cat(char *, float *, float *, float *, float *, float *, float *, float *, float *,long);
 /*=============================================================================
  *                              MAIN()
  *=============================================================================*/
@@ -279,11 +279,6 @@ int main(int argc, char **argv){
 	free(nbz);
 	free(nbm);
 
-	betavec = (double *)calloc(Nalpha,sizeof(double));
-	alphavec = (double *)calloc(Nalpha,sizeof(double));
-	for (i=0;i<Nalpha;i++){
-		betavec[i]=1.0;
-	}
 	// DO THE FIT
 	if(find_best_alpha()==0)
 		fprintf(stderr, "... done fitting.\n");
@@ -315,12 +310,10 @@ int main(int argc, char **argv){
 	free(nbvy);
 	free(nbvz);
 	#ifdef VERB
-	for (i=0;i<Nalpha;i++){
-		fprintf(stderr,"alpha[%ld]=%f beta[%ld]=%f fvel=%f\n",i,alphavec[i],i,betavec[i], fvel[i]);
-	}
+	for (ii=0;ii<Nalpha;ii++)
+		fprintf(stderr,"\t\tfvel[%ld]=%f\n",ii,fvel[ii]);
 	#endif
 	fprintf(stderr,"\t...done!\n");
-
 	// ALLOCATE the halogen_2pcf array
 	halogen_2pcf = (double **) calloc(Nalpha,sizeof(double *));
 	halogen_err = (double **) calloc(Nalpha,sizeof(double *));
@@ -381,13 +374,8 @@ int main(int argc, char **argv){
 		free((halogen_2pcf)[ii]);
 		free((halogen_err)[ii]);
 	}
-	// TBD: change this for a loop correcting velocities or change it on the fly while writing
-	place_halos(Nhalos,HaloMass, Nlin, Npart, x, y, z, vx,vy,vz,Lbox,
-				rho,seed,
-				mpart,nthreads, alphavec, betavec, mcuts, Nalpha, recalc_frac,hx, hy, hz,
-				hvx,hvy,hvz, hR,ListOfParticles,NPartPerCell);	
 	fprintf(stderr,"Writing an example halo catalog to %s\n",OutputExampleCat);
-	write_halogen_cat(OutputExampleCat, hx, hy, hz, hvx, hvy,hvz, HaloMass, hR,Nhalos,fvel,mcuts);
+	write_halogen_cat(OutputExampleCat, hx, hy, hz, hvx, hvy,hvz, HaloMass, hR,Nhalos);
 	fprintf(stderr,"...done!\n");
 	free(halogen_2pcf);
 	free(halogen_err);
@@ -588,15 +576,10 @@ float * compute_fvel(float *vx,float *vy,float *vz,float *nbvx,float *nbvy,float
 	#endif
 		#ifdef FVEL_X 
 		vbias[ii]=vel_1D_std(nbvx,Nstart,Nend)/vel_1D_std(vx,Nstart,Nend);
-		#else
-		vbias[ii]=vel_std(nbvx,nbvy,nbvz,Nstart,Nend)/vel_std(vx,vy,vz,Nstart,Nend);
-		  #ifdef VERB
-		  fprintf(stderr,"\t\tfvel[%ld]=%f/%f",ii,vel_std(nbvx,nbvy,nbvz,Nstart,Nend),vel_std(vx,vy,vz,Nstart,Nend));
-		  #endif
+		#else	
+		vbias[ii]=vel_std(nbvx,nbvy,nbvz,Nstart,Nend)/vel_std(vx,vy,vz,Nstart,Nend);	
 		#endif
-		  #ifdef VERB
-		  fprintf(stderr,"\t=%f\n",vbias[ii]);
-		  #endif
+		fprintf(stderr,"\t\tfvel[%ld]=%f\n",ii,vbias[ii]);
 	}
 	return vbias;
 }
@@ -733,8 +716,8 @@ int find_best_alpha(){
 	ncoeffs = num_alpha-1;
 	nbreak =ncoeffs-2;
 	// Allocate alphavec, which is our result
-	//alphavec = (double *) calloc(Nalpha,sizeof(double));
-	//betavec = (double *) calloc(Nalpha,sizeof(double));
+	alphavec = (double *) calloc(Nalpha,sizeof(double));
+	betavec = (double *) calloc(Nalpha,sizeof(double));
 
 
 	alpha_2pcf = (double **) calloc(num_alpha,sizeof(double *));
@@ -1516,28 +1499,16 @@ int read_input_file(char *name){
 
 
 
-int write_halogen_cat(char *filename, float *x, float *y, float *z, float *vx, float *vy, float *vz, float *M, float *R,long N, float *fvel, double *Mcuts){
+int write_halogen_cat(char *filename, float *x, float *y, float *z, float *vx, float *vy, float *vz, float *M, float *R,long N){
 	FILE *f;
 	long i;
-	int i_alpha=0;
-	double Mchange = Mcuts[0];
-	float fvel_i=fvel[0];
+
 	if ((f=fopen(filename,"w") )== NULL){
 		fprintf(stderr,"Couldnt open output file %s\n",filename);
 		return -1;
 	}
-
 	for(i=0;i<N;i++){
-
-		while ( M[i] < Mchange){
-                        i_alpha++;
-                        Mchange = Mcuts[i_alpha];
-                        fvel_i = fvel[i_alpha];
-                #ifdef VERB
-                        fprintf(stderr,"\tUsing fvel=%f for M>%e\n",fvel_i,Mchange);
-                #endif
-                }
-		fprintf(f,"%f %f %f %f %f %f %e %f\n",x[i],y[i],z[i],vx[i]*fvel_i,vy[i]*fvel_i,vz[i]*fvel_i,M[i],R[i]);
+		fprintf(f,"%f %f %f %f %f %f %e %f\n",x[i],y[i],z[i],vx[i],vy[i],vz[i],M[i],R[i]);
 	}
 	fclose(f);
 	return 0;

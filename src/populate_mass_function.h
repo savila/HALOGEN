@@ -1,1 +1,1 @@
-long populate_mass_function(char *, double, double, float **,long,int);
+long populate_mass_function(char *, double, double, float **,long);

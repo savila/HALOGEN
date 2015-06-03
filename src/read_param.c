@@ -172,6 +172,7 @@ void read_parameterfile(char *fname)
 	{
 	  buf[0] = 0;
 	  fgets(buf, 200, fd);
+	  
 
 	  if(sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
 	    continue;
