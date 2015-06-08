@@ -19,7 +19,6 @@ Roman Scoccimarro and Sebastian Pueblas (http://cosmo.nyu.edu/roman/2LPT/)
 //#ifdef ONLY_2LPT
 int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 	int NextSlice, PrevSlice, NfromPrevSlice,NfromNextSlice;
-	//, *WhichSlice;
 	int NPartPrevSlice=0,NPartNextSlice=0; 
 	float *NextSliceX, *NextSliceY, *NextSliceZ, *NextSliceVX, *NextSliceVY, *NextSliceVZ, *FromPrevSliceX, *FromPrevSliceY, *FromPrevSliceZ, *FromPrevSliceVX,*FromPrevSliceVY,*FromPrevSliceVZ;
 	float *PrevSliceX, *PrevSliceY, *PrevSliceZ, *PrevSliceVX, *PrevSliceVY, *PrevSliceVZ, *FromNextSliceX, *FromNextSliceY, *FromNextSliceZ, *FromNextSliceVX, *FromNextSliceVY, *FromNextSliceVZ;
@@ -150,19 +149,28 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 		}
 	}
 
+
 	//Send to next slice
-
-
 	
-		if (ThisTask!=NTask-1)
-			NextSlice = ThisTask+1;
-	  	else 
-			NextSlice = 0;
+	if (ThisTask!=NTask-1)
+		NextSlice = ThisTask+1;
+	else 
+		NextSlice = 0;
 
-		if (ThisTask!=0)
-			PrevSlice = ThisTask-1;
-		else 
-			PrevSlice = NTask-1;
+	if (ThisTask!=0)
+		PrevSlice = ThisTask-1;
+	else 
+		PrevSlice = NTask-1;
+
+
+	#ifdef VERB
+		#ifndef DEBUG
+		if (ThisTask==0)
+		#endif
+			fprintf(stderr,"\tTask %d sending %d parts to task %d, and %d parts to task %d (%f%% stay)\n",ThisTask,NPartPrevSlice,PrevSlice,NPartNextSlice,NextSlice,(float)(NumPart-NPartPrevSlice-NPartNextSlice)/(NumPart)*100.0);
+	#endif
+
+
 
 	if (ThisTask%2==0){
   		#ifdef DEBUG
@@ -249,7 +257,9 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 
 
 		MPI_Recv(&NfromNextSlice, 1, MPI_INT, NextSlice, 2234, MPI_COMM_WORLD, &status);
-		fprintf(stderr,"Task %d receiving %d particles from Task %d\n",ThisTask,NfromNextSlice,NextSlice);
+  		#ifdef DEBUG
+		fprintf(stderr,"\tTask %d receiving %d particles from Task %d\n",ThisTask,NfromNextSlice,NextSlice);
+		#endif
 		FromNextSliceX = (float *) malloc(NfromNextSlice*sizeof(float));
 		FromNextSliceY = (float *) malloc(NfromNextSlice*sizeof(float));
 		FromNextSliceZ = (float *) malloc(NfromNextSlice*sizeof(float));
@@ -271,8 +281,9 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 	else {
 		MPI_Recv(&NfromPrevSlice, 1, MPI_INT, PrevSlice, 1234, MPI_COMM_WORLD, &status);
 
-		fprintf(stderr,"Task %d receiving %d particles from Task %d\n",ThisTask,NfromPrevSlice,PrevSlice);
-
+  		#ifdef DEBUG
+		fprintf(stderr,"\tTask %d receiving %d particles from Task %d\n",ThisTask,NfromPrevSlice,PrevSlice);
+		#endif
 		FromPrevSliceX = (float *) malloc(NfromPrevSlice*sizeof(float));
 		FromPrevSliceY = (float *) malloc(NfromPrevSlice*sizeof(float));
 		FromPrevSliceZ = (float *) malloc(NfromPrevSlice*sizeof(float));
@@ -320,7 +331,9 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 
 
 		MPI_Recv(&NfromNextSlice, 1, MPI_INT, NextSlice, 2234, MPI_COMM_WORLD, &status);
-		fprintf(stderr,"Task %d receiving %d particles from Task %d\n",ThisTask,NfromNextSlice,NextSlice);
+  		#ifdef DEBUG
+		fprintf(stderr,"\tTask %d receiving %d particles from Task %d\n",ThisTask,NfromNextSlice,NextSlice);
+		#endif
 		FromNextSliceX = (float *) malloc(NfromNextSlice*sizeof(float));
 		FromNextSliceY = (float *) malloc(NfromNextSlice*sizeof(float));
 		FromNextSliceZ = (float *) malloc(NfromNextSlice*sizeof(float));
@@ -367,20 +380,24 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
   		#endif
   		MPI_Send( &PrevSliceVZ[0], NPartPrevSlice, MPI_FLOAT, PrevSlice, 2116, MPI_COMM_WORLD);
 	}
-  	#ifdef VERB
-	fprintf(stderr,"\tAll transmision done!\n\n");
-  	#endif
-	
 
-	
+	#ifdef VERB
+		#ifndef DEBUG
+		if (ThisTask==0)
+		#endif
+			fprintf(stderr,"\tTask %d received %d parts from task %d, and %d parts from task %d\n",ThisTask,NfromPrevSlice,PrevSlice,NfromNextSlice,NextSlice);
+	#endif
+		
       	P = (struct part_data *) realloc(P,sizeof(struct part_data) * (NumPart+ NfromPrevSlice+NfromNextSlice));
 
 	if (P==NULL){
 		fprintf(stderr,"ERROR reallocating memory for Particles in task %d \t", ThisTask);
 		return -1;
 	}
+	#ifdef DEBUG
+	fprintf(stderr,"\tTask %d, copying %d from Prev\n",ThisTask,NfromPrevSlice);
+	#endif
 
-	fprintf(stderr,"Task %d, copying %d from Prev\n",ThisTask,NfromPrevSlice);
 	for (ii=0;ii<NfromPrevSlice;ii++){
 		ipart =ii+NumPart;
 		P[ipart].Pos[0]=FromPrevSliceX[ii];

@@ -17,6 +17,9 @@ HALOGEN has been developped by Santiago Avila and Steven Murray
 
 #include "populate_mass_function.h"
 
+#include "allvars.h"
+#include "proto.h"
+
 #define LINELENGTH 1024
 
 /*=============================================================================
@@ -48,15 +51,32 @@ long populate_mass_function(char *filename, double Mmin, double Lbox, float **ha
 	int	nthreads = omp_get_max_threads();
 
 	//Reading cumulative mass function
+	
+	#ifdef FULL_MPI
+	if(ThisTask==0)
+	#endif
+	#ifdef VERB
 	fprintf(stderr,"\tReading Mass Function... \n");		
+	#endif
+
 	if (read_mass_function(filename,&mass_arr,&dens_arr,&Npoints,Mmin,&Nshort)!=1){
 		fprintf(stderr,"ERROR: could not read %s\n",filename);
 		return -1;	
 	}
 	Nshort+=2; //Add 2 points to avoid border effects
+
+	#ifdef FULL_MPI
+	if(ThisTask==0)
+	#endif
+	#ifdef VERB
 	fprintf(stderr,"\t... read\n");		
+	#endif
+
 	srand(seed);
 	#ifdef VERB
+	#ifdef FULL_MPI
+	if(ThisTask==0)
+	#endif
 	fprintf(stderr,"\tSeed used: %ld\n",seed);
 	#endif
 
@@ -73,11 +93,21 @@ long populate_mass_function(char *filename, double Mmin, double Lbox, float **ha
 
 	Nhalos = (long)(dens_max*Lbox*Lbox*Lbox+0.5);	
 
+	#ifdef FULL_MPI
+	if(ThisTask==0)
+	#endif
+	#ifdef VERB
 	fprintf(stderr,"\tNumber of halos: %ld\n",Nhalos);	
+	#endif
 
 
 
+	#ifdef FULL_MPI
+	if(ThisTask==0)
+	#endif
+	#ifdef VERB
 	fprintf(stderr,"\tInverting Mass Function... \n");	
+	#endif
 	//prepare splines for inverse function M(n)
 	mass_inv_arr = (double *) calloc(Nshort,sizeof(double));
 	dens_inv_arr = (double *) calloc(Nshort,sizeof(double)); 
@@ -86,24 +116,44 @@ long populate_mass_function(char *filename, double Mmin, double Lbox, float **ha
 		mass_inv_arr[i]=mass_arr[j];
 		dens_inv_arr[i]=dens_arr[j];
 	}
+	#ifdef FULL_MPI
+	if(ThisTask==0)
+	#endif
+	#ifdef VERB
 	fprintf(stderr,"\t...done!\n");
+	#endif
 	*halo_masses = (float *) calloc(Nhalos,sizeof(float));
 	get_cubic_splines(dens_inv_arr,mass_inv_arr,Nshort,y2);
 
 
 
 	//Generate masses
+	#ifdef FULL_MPI
+	if(ThisTask==0)
+	#endif
+	#ifdef VERB
 	fprintf(stderr,"\tGenerating halo masses...\n");	
-	#pragma omp parallel for num_threads(nthreads) private(i,d_rand) shared(dens_max,halo_masses,Nhalos,dens_inv_arr,mass_inv_arr,Nshort,y2) default(none)
+	#endif
+	#pragma omp parallel for private(i,d_rand) shared(dens_max,halo_masses,Nhalos,dens_inv_arr,mass_inv_arr,Nshort,y2) default(none)
 	for (i=0;i<Nhalos;i++){
 		d_rand = (double) rand()*dens_max/RAND_MAX;
 		(*halo_masses)[i] = (float) spline_inter(dens_inv_arr,mass_inv_arr,Nshort,y2,d_rand);
 	}
+	#ifdef FULL_MPI
+	if(ThisTask==0)
+	#endif
+	#ifdef VERB
 	fprintf(stderr,"\t...sorting them...\n");	
+	#endif
 	
 	qsort(*halo_masses, Nhalos, sizeof(*halo_masses[0]), compare_float);
 	
+	#ifdef FULL_MPI
+	if(ThisTask==0)
+	#endif
+	#ifdef VERB
 	fprintf(stderr,"\t...done\n");
+	#endif
 
 	return Nhalos;
 }

@@ -110,6 +110,7 @@ void ComputeLocalProb(double LocalProb, double *Pstart, double *Pend){
 			#endif
 			MPI_Send( &(ProbSlice[i-1]), 1, MPI_DOUBLE, i,5544, MPI_COMM_WORLD); 
 			#ifdef DEBUG 
+	fprintf(stderr,"cc\n\tParticles and Halos placed in %ld^3 cells\n",NCells);
 			fprintf(stderr,"\tTask %d sending P[%d]=%f to Task %d \n",ThisTask,i-1,ProbSlice[i-1],i);
 			#endif
 			MPI_Send( &(ProbSlice[i]), 1, MPI_DOUBLE, i,5566, MPI_COMM_WORLD); 	
@@ -136,9 +137,10 @@ int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 		float **HaloVY,  float **HaloVZ, float **HaloM, float **HaloR,float L,long **ListOfPart, 
 		long *NPartPerCell){
 
-
+	#ifdef DEBUG
 	fprintf(stderr,"\tThis is place_halos.c Task %d\n",ThisTask);
-	
+	#endif
+
 //Initiallising -------------------------------------------------
 	long i,j,k,lin_ijk, Nmin;
 	long *count,trials;
@@ -226,19 +228,20 @@ int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 
         //Initiallise random numbers
 	#ifdef VERB
+	if (ThisTask==0)
         fprintf(stderr,"\tinput seed: %ld.    time0: %f.",seed, (float) t0);
 	#endif
 	if (seed>=0){
 		srand(seed);
 		srand48(seed);
 		#ifdef VERB
-			fprintf(stderr,"\tUsed: %ld \n",seed);
+			if (ThisTask==0) fprintf(stderr,"\tUsed: %ld \n",seed);
 		#endif
 	}
 	else {
 		srand(t0);
 #ifdef VERB
-		fprintf(stderr,"\tSeed Used: %ld \n",t0);
+		if (ThisTask==0) fprintf(stderr,"\tSeed Used: %ld \n",t0);
 #endif
 	}
 
@@ -248,7 +251,6 @@ int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 	lcell = (float) L/NCells;
 /*
 	#ifdef VERB
-	fprintf(stderr,"\n\tParticles and Halos placed in %ld^3 cells\n",NCells);
 	fprintf(stderr,"\tBOX = %f  lcell =%f   rho_ref = %e  invL %f\n",L,L/NCells,rho_ref,invL);
 	fprintf(stderr,"\tNhalostart = %d,Nhalosend = %ld,  NPart = %ld\n",0, Nend, NTotPart);
 	fprintf(stderr,"\n\tMinimmum mass= %e. Minimum part per halo = %ld. mpart %e\n",HaloMass[Nend-1],Nmin,mpart);
@@ -345,20 +347,16 @@ if (ThisTask==0){
 	fvel_i = fvel[i_alpha];
 
 #ifdef VERB
-	if (ThisTask!=0)
+	if (ThisTask==0)
 	fprintf(stderr,"\tUsing OMP with %d threads\n",NTHREADS);
 	t4=time(NULL);
 #endif
 	TotProb = ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);	
 	ComputeLocalProb(TotProb,&Pstart,&Pend);
-//int itask;
-//for (itask=0;itask<NTask;itask++){
-//if (ThisTask==itask){
-	fprintf(stderr,"Task %d/%d. Prob in [%f,%f)\n",ThisTask,NTask,Pstart,Pend);
-#ifdef VERB
-	if (ThisTask!=0) fprintf(stderr,"\n\tcase 0, TotProb=%e\n",TotProb);
-#endif
-	int EstHalos = (int) (Nend*(Pend-Pstart) + sqrt(Nend*(Pend-Pstart))*4.0); //mean+4sigmas
+
+	fprintf(stderr,"\t\tTask %d/%d. Prob in [%f,%f)\n",ThisTask,NTask,Pstart,Pend);
+	//int EstHalos = (int) (Nend*(Pend-Pstart) + sqrt(Nend*(Pend-Pstart))*4.0); //mean+4sigmas
+	int EstHalos = (int) (Nend*(Pend-Pstart)*2);
 	(*HaloX)  = (float *) calloc(EstHalos,sizeof(float ));
 	(*HaloY)  = (float *) calloc(EstHalos,sizeof(float ));
 	(*HaloZ)  = (float *) calloc(EstHalos,sizeof(float ));
@@ -373,12 +371,13 @@ if (ThisTask==0){
 	}
 
 #ifdef VERB
-	if (ThisTask!=0){
+	if (ThisTask==0){
         	fprintf(stderr,"\tNumber of alphas: %ld\n",Nalpha);
         	fprintf(stderr,"\tUsing alpha_%ld=%f for M>%e\n",i_alpha,exponent,Mchange);
 		t4_5=time(NULL);
  		diff = difftime(t4_5,t4);
 		fprintf(stderr,"\tprobabilty computed in %f secods\n",diff);
+		fprintf(stderr,"\t Estimated halos: %d\n",EstHalos);
 	}
 #endif
 // ----------------------------------------- Computed Probability
@@ -386,69 +385,49 @@ if (ThisTask==0){
 
 //Actually placing the haloes----------------------------------- 
 #ifdef VERB
+	if (ThisTask==0)
 	fprintf(stderr,"\n\tTask %d Placing Halos...\n\n",ThisTask);
 #endif
 	//Place one by one all the haloes (assumed to be ordered from the most massive to the least massive)
 	for (ihalo=0;ihalo<Nend;ihalo++){
+
+	   //Check whether or not, a change of alpha is needed for this halo mass 		
+	   Mhalo= HaloMass[ihalo];
+	   while (Mhalo < Mchange){   //if so search the right alpha, and recompute probabilities
+		i_alpha++;		
+		if (i_alpha==Nalpha){
+			fprintf(stderr,"\tERROR: No M_alpha low enough found: %e <%e\n",Mhalo,Malpha[Nalpha-1]);
+			exit(0);
+		}
+		Mchange = Malpha[i_alpha];
+		exponent = alpha[i_alpha];
+		fvel_i = fvel[i_alpha];
+		 #ifdef VERB
+        	 if (ThisTask==0) fprintf(stderr,"\t\tUsing alpha_%ld=%f for M>%e\n",i_alpha,exponent,Mchange);
+		 #endif
+		TotProb=ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);
+		ComputeLocalProb(TotProb,&Pstart,&Pend);
+	   }
+
+	   //decide Task
 	   draw = drand48();
-	   //if (ihalo==1234) fprintf(stderr,"Halo: %d    Task:%d draw=%f\n",ihalo,ThisTask,draw);
-	   //if (ihalo<12) fprintf(stderr,"Halo: %d    Task:%d draw=%f\n",ihalo,ThisTask,draw);
-	   if ((draw>=Pstart) && (draw<Pend)){ //if it corresponds to this task
+
+	   if ((draw>=Pstart) && (draw<Pend)){                 //if it corresponds to this task
 		#ifdef DEBUG
 		fprintf(stderr,"\n\t- Halo %ld ",ihalo);
 		fprintf(stderr,"dice:%f -> Task: %d\n",draw,ThisTask);
 		#endif
 		#ifdef VERB
 		if (ihalo%(Nend/10)==0 && ihalo>0){
-			//TEMPORARY
-			fprintf(stderr,"\t\tFRAC, TOTPROB: %e, %e",(pow(Mcell/mpart,exponent)/TotProb),TotProb);
-			fprintf(stderr,"\t%ld%% done\n",(ihalo/(Nend/100)));
+			  fprintf(stderr,"\t\tFRAC, TOTPROB: %e, %e",(pow(Mcell/mpart,exponent)/TotProb),TotProb);
+			  fprintf(stderr,"\t%ld%% done (Task %d)\n",(ihalo/(Nend/100)),ThisTask);
 		}
 		#endif
-		//Check whether or not, a change of alpha is needed for this halo mass 		
-		Mhalo= HaloMass[ihalo];
-		recalc = 0;
-		while (Mhalo < Mchange){//if so search the right alpha, and recompute probabilities
-			i_alpha++;		
-			if (i_alpha==Nalpha){
-				fprintf(stderr,"\tERROR: No M_alpha low enough found: %e <%e\n",Mhalo,Malpha[Nalpha-1]);
-				exit(0);
-			}
-			Mchange = Malpha[i_alpha];
-			exponent = alpha[i_alpha];
-			fvel_i = fvel[i_alpha];
-
-
-		#ifdef VERB
-        		fprintf(stderr,"\n\tUsing alpha_%ld=%f for M>%e\n",i_alpha,exponent,Mchange);
-		#endif
-        	recalc = 1;
-		}
 		
 		// recalc if different alpha, OR there's a significant chance of choosing the same cell again.
-		if(ihalo>0){
-		  if(prob_repicked>=recalc_frac){
-			recalc = 1;
-			n_recalc += 1;
-			fprintf(stderr,"RECALCULATING: %ld, %e,    ihalo=%ld\n",n_recalc,prob_repicked,ihalo);
-
-		  }
-		}
-
-		if (recalc==1){
-			tI=time(NULL);
-			fprintf(stderr,"\tcase 1, TotProb_bef=%e",TotProb);
-			TotProb=ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);
-			fprintf(stderr,"    TotProb_aft=%e       ihalo=%ld\n\n",TotProb,ihalo);
-
-			prob_repicked=0.0;
-#ifdef VERB
-			tII=time(NULL);
-			diff = difftime(tII,tI);
-			fprintf(stderr,"\tProbabilty recomputed in %f secods\n",diff);
-#endif
-
-			recalc = 0;
+		if(prob_repicked>recalc_frac){
+			fprintf(stderr,"\tWARNING: recalculation trigered, but not available in full-mpi version\n");
+			prob_repicked = 0.0;
 		}
 
 
@@ -460,7 +439,8 @@ if (ThisTask==0){
 			if (trials==MAXTRIALS){
 				fprintf(stderr,"MAXTRIALS=%d times picked an empty cell, recomputing Probs...\n",MAXTRIALS);
 				fprintf(stderr,"\n\tcase 2, TotProb_bef=%e",TotProb);
-				TotProb=ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);
+				//TotProb=ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);
+				fprintf(stderr,"\tWARNING: recalculation trigered, but not available in full-mpi version\n");
 				fprintf(stderr,"    TotProb_aft=%e       ihalo=%ld\n",TotProb,ihalo);
 				prob_repicked = 0.0;
 				trials=0;
@@ -471,11 +451,10 @@ if (ThisTask==0){
 		
 		  }while (MassLeft[lin_ijk]==0.);
 
-
-
 		  k=lin_ijk%(NCells);
 		  j=((lin_ijk-k)/NCells)%NCells;
 	  	  i=(lin_ijk-k-j*NCells)/(NCells*NCells);
+
 
 		  #else //RANKED option: deprecated and not optimised
 		  lin_ijk=select_heaviest_cell(&i,&j,&k,MassLeft);		  
@@ -532,9 +511,10 @@ if (ThisTask==0){
 				#endif
 				MassLeft[lin_ijk]=0.;
 				fprintf(stderr,"\n\tcase 3, TotProb_bef=%e",TotProb);
-				TotProb=ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);
-				fprintf(stderr,"    TotProb_aft=%e       ihalo=%ld, R=%f\n",TotProb,ihalo,R);
-				prob_repicked=0.0;
+				//TotProb=ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);
+				//fprintf(stderr,"    TotProb_aft=%e       ihalo=%ld, R=%f\n",TotProb,ihalo,R);
+				//prob_repicked=0.0;
+				fprintf(stderr,"\tWARNING: recalculation trigered, but not available in full-mpi version\n");
 				trials=0;
 				break;
 			}
@@ -547,25 +527,21 @@ if (ThisTask==0){
                 Mcell=MassLeft[lin_ijk];
 
 		
-		  #ifndef MASS_OF_PARTS 
+		#ifndef MASS_OF_PARTS 
                   if (Mcell>HaloMass[ihalo])
 			MassLeft[lin_ijk] -= Mhalo; 
                   else
 			MassLeft[lin_ijk] = 0.;
-		  #else
+		#else
 			exclude(ipart,R,PartX,PartY,PartZ,i,j,k);
-		  #endif
+		#endif
 
 		prob_repicked += pow(Mcell/mpart,exponent)/TotProb;
 
 
 		#ifdef DEBUG
 		fprintf(stderr,"\tAfter: Mcell=%e, CProbCell=%e, TotProb=%e.   , Mhalo=%e. CProb[last]=%e\n",MassLeft[lin_ijk],CumulativeProb[lin_ijk],TotProb,Mhalo,CumulativeProb[NTotCells-1]);
-		#endif
-		#ifdef DEBUG
 		fprintf(stderr,"\thalo %ld assigned to particle %ld at [%f,%f,%f]. R= %f, M= %e\n",ihalo,ipart,(*HaloX)[NlocalHalos],(*HaloY)[NlocalHalos],(*HaloZ)[NlocalHalos],R,Mhalo);
-		#endif
-		#ifdef DEBUG
 		//fprintf(stderr,"HaloX=%f PartX=%f\n",HaloX[NlocalHalos],PartX[ipart]);
 		#endif
 
@@ -577,11 +553,15 @@ if (ThisTask==0){
 	}//for(ihalo=Nstart:Nend)
 //----------------------------------- Haloes Placed
 	
-	fprintf(stderr,"\t... placement Done!\n");
-	fprintf(stderr,"\t Task %d Halos %ld\n",ThisTask,NlocalHalos);
+	if (NlocalHalos>EstHalos){
+		fprintf(stderr,"ERROR: Estimated halos (%d) lower than found (%d)\n",EstHalos,NlocalHalos);
+		return -1;
+	}
+	if (ThisTask==0) fprintf(stderr,"\t... placement Done!\n");
+	fprintf(stderr,"\t\tTask %d Halos %ld\n",ThisTask,NlocalHalos);
 /*
 	(*HaloX)  = (float *) realloc(HaloX,NlocalHalos*sizeof(float));
-	if ((*HaloX)==NULL){
+	if ((*HaloX)!=NULL){
 		fprintf(stderr,"ERROR: couldnt realloc HaloX\n");
 	}
 	else {
@@ -618,18 +598,15 @@ if (ThisTask==0){
 		fprintf(stderr,"ERROR: couldnt realloc HaloM\n");
 	}
 */
-	fprintf(stderr,"\t\tTOTAL NUMBER OF RE-CALCULATIONS: %ld\n",n_recalc);
+//	fprintf(stderr,"\t\tTOTAL NUMBER OF RE-CALCULATIONS: %ld\n",n_recalc);
 
 #ifdef VERB
 	t5=time(NULL);
  	diff = difftime(t5,t4_5);
-	fprintf(stderr,"\ttime placing %f\n",diff);
-	fprintf(stderr,"\tfreeing...\n");
+	if (ThisTask==0) fprintf(stderr,"\ttime placing %f\n",diff);
+	if (ThisTask==0) fprintf(stderr,"\tfreeing...\n");
 #endif
 
-//}//itask if
-//MPI_Barrier(MPI_COMM_WORLD);
-//}//itask for
 	free(NHalosPerCellStart);
 	free(NHalosPerCellEnd);
         free(count); 
@@ -638,8 +615,8 @@ if (ThisTask==0){
         free(ListOfHalos);
 #ifdef VERB
  	diff = difftime(t5,t0);
-	fprintf(stderr,"\ttotal time in place_halos.c %f\n",diff);
-	fprintf(stderr,"\tPlacement done!!!\n");
+	if (ThisTask==0) fprintf(stderr,"\ttotal time in place_halos.c %f\n",diff);
+	//if (ThisTask==0) fprintf(stderr,"\tPlacement done!!!\n");
 #endif
 
 #ifdef MASS_OF_PARTS

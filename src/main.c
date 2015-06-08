@@ -224,6 +224,7 @@ int main(int argc, char **argv) {
                 MPI_Finalize();
                 exit(0);
 	}
+
   	#ifdef DEBUG
 	int i,j,k,lin_ijk;	
 	for (i=0; i<Nx;i++)
@@ -253,7 +254,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr,"error: Couldnt create HaloMass array\n");
 
 	}
-        fprintf(stderr,"...%ld Halo Masses Generated\n\n",Nhalos);
+        if(ThisTask == 0) fprintf(stderr,"...%ld Halo Masses Generated\n\n",Nhalos);
 
         //density at the boundary of a halo
         if (strcmp(rho_ref,"crit")==0)
@@ -261,7 +262,7 @@ int main(int argc, char **argv) {
         else
                 rho = OVD*rho_crit*Omega;
 
-        fprintf(stderr,"Placing halos down...\n");
+        if(ThisTask == 0) fprintf(stderr,"Placing halos down...\n");
 
         // Check the M-alpha vector against produced halos.
         if( Malpha[Nalpha-1] > HaloMass[Nhalos-1]){
@@ -277,28 +278,30 @@ int main(int argc, char **argv) {
         NlocalHalos = place_halos(Nhalos,HaloMass, Nlin, Nx, rho,seed,mpart, nthreads,alpha_vec, fvel, Malpha, Nalpha,recalc_frac,&hx, &hy, &hz, &hvx,&hvy,&hvz,&hR,&hM,Box,ListOfParticles,NPartPerCell);
 
 	if (NlocalHalos>0){
-                fprintf(stderr,"...%ld halos placed correctly\n",NlocalHalos);
+                if(ThisTask == 0) fprintf(stderr,"...%ld halos placed correctly in Task %d\n",NlocalHalos,ThisTask);
 	}
         else {
-                fprintf(stderr,"ERROR: Problem placing halos\n");
-  		MPI_Finalize();
+		fprintf(stderr,"ERROR: Problem placing halos\n");
+		MPI_Finalize();
 		exit(0);
         }
         fprintf(stderr,"\n");
 
-
 	sprintf(chtemp,"%s.%d",OutputFile,ThisTask);
 	sprintf(OutputFile,"%s",chtemp);
 
+
         //writting output       
         if(ThisTask == 0) fprintf(stderr,"Writing Halo catalogue...\n");
-        write_halogen_cat(OutputFile,hx,hy,hz,hvx,hvy,hvz,HaloMass,hR,NlocalHalos);
+        write_halogen_cat(OutputFile,hx,hy,hz,hvx,hvy,hvz,hM,hR,NlocalHalos);
+  	MPI_Barrier(MPI_COMM_WORLD);
         if(ThisTask == 0) fprintf(stderr,"...halo catalogue written in %s\n",OutputFile);
 
         free(hx);free(hy);free(hz);free(hR);
         free(hvx);free(hvy);free(hvz);free(hM);
         free(alpha_vec); free(Malpha);
 
+  	MPI_Barrier(MPI_COMM_WORLD);
 	if(ThisTask == 0) {
            fprintf(stderr,"\n*******************************************************************\n");
            fprintf(stderr,"**                        ... and there were dark matter haloes  **\n");
@@ -667,7 +670,7 @@ void displacement_fields(void)
                 -digrad[1][coord]*digrad[1][coord]-digrad[2][coord]*digrad[2][coord]-digrad[4][coord]*digrad[4][coord];
 	    }
 
-      if(ThisTask == 0) fprintf(stderr,"\tFourier transforming second order source...");
+      if(ThisTask == 0) fprintf(stderr,"\tFourier transforming second order source...\n");
       rfftwnd_mpi(Forward_plan, 1, digrad[3], Workspace, FFTW_NORMAL_ORDER);
       if(ThisTask == 0) fprintf(stderr,"\tDone.\n");
       

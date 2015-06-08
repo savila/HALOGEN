@@ -182,12 +182,11 @@ void read_glass(char *fname)
   if(ThisTask == 0)
     {
       for(i = 0; i < NTask; i++)
-	printf("\t%d particles on task=%d  (slabs=%d)\n", npart_Task[i], i, Local_nx_table[i]);
+	fprintf(stderr,"\t\t%d particles on task=%d  (slabs=%d)\n", npart_Task[i], i, Local_nx_table[i]);
 
-      printf("\tTotal number of particles  = %d%09d\n",
+      if(ThisTask==0) fprintf(stderr,"\tTotal number of particles  = %d%09d\n",
 	     (int) (TotNumPart / 1000000000), (int) (TotNumPart % 1000000000));
 
-      fflush(stdout);
     }
 #endif
 
