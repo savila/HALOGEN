@@ -146,7 +146,7 @@ int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 	long *count,trials;
 	long ihalo, ipart,i_alpha;
 	float Mcell,Mhalo,Mchange; 
-	float R;
+	float R,Rmax;
 	time_t t0,tI,tII;
 	int check;
 
@@ -219,9 +219,9 @@ int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
   	}
 	#ifdef NO_EXCLUSION
 	int *already_chosen;
-	already_chosen = (int*) calloc(NTotPart,sizeof(int));
+	already_chosen = (int*) calloc(NumPart,sizeof(int));
  	if(already_chosen == NULL) {
-                fprintf(stderr,"\tplace_halos(): could not allocate %ld array for already_chosen[]\nABORTING",NTotPart);
+                fprintf(stderr,"\tplace_halos(): could not allocate %ld array for already_chosen[]\nABORTING",NumPart);
                 exit(-1);
         }
 	#endif
@@ -272,6 +272,8 @@ int place_halos(long Nend, float *HaloMass, long Nlin, long Nx,
 		fprintf(stderr,"WARNING: cell size is smaller than the radius of the biggest halo. Using r=%i. This may be problematic\n",r);
 	}
 	t1=time(NULL);
+	Rmax = R_from_mass(HaloMass[0],rho_ref);
+	
 if (ThisTask==0){
 #ifdef VERB
 	fprintf(stderr,"\tR_max=%f, lcell=%f, r=%d\n",R_from_mass(HaloMass[0],rho_ref),(L/NCells),r);
@@ -405,6 +407,12 @@ if (ThisTask==0){
 		 #ifdef VERB
         	 if (ThisTask==0) fprintf(stderr,"\t\tUsing alpha_%ld=%f for M>%e\n",i_alpha,exponent,Mchange);
 		 #endif
+		//check exclusion
+		/*
+		do {
+			Ncollisions = mpi_exclusion();
+		} while(Ncollisions!=0);
+		*/
 		TotProb=ComputeCumulative(exponent, mpart, MassLeft, CumulativeProb);
 		ComputeLocalProb(TotProb,&Pstart,&Pend);
 	   }
@@ -490,7 +498,7 @@ if (ThisTask==0){
 			(*HaloR)[NlocalHalos]= R;
 			(*HaloM)[NlocalHalos]=HaloMass[ihalo];
 			#ifdef NO_EXCLUSION
-			  	check = already_chosen[part];
+			  	check = already_chosen[ipart];
 				already_chosen[ipart]=1;
 			#else
 			//Third, check that is not overlapping a previous halo
@@ -544,10 +552,20 @@ if (ThisTask==0){
 		fprintf(stderr,"\thalo %ld assigned to particle %ld at [%f,%f,%f]. R= %f, M= %e\n",ihalo,ipart,(*HaloX)[NlocalHalos],(*HaloY)[NlocalHalos],(*HaloZ)[NlocalHalos],R,Mhalo);
 		//fprintf(stderr,"HaloX=%f PartX=%f\n",HaloX[NlocalHalos],PartX[ipart]);
 		#endif
-
+		
+/*	
+		if (((*HaloX)[NlocalHalos]-ThisTask*Lbox/NTask)<Rmax){
+			Border[NlocalHalos]=1;
+			Nborder++;
+		}
+*/
+		//Save selected particle
 		ListOfHalos[NHalosPerCellEnd[lin_ijk]]=NlocalHalos;
 		NHalosPerCellEnd[lin_ijk]++;
 		NlocalHalos++;
+		
+	
+		
 	   }//if(this task)
 	  
 	}//for(ihalo=Nstart:Nend)

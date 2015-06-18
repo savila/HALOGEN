@@ -475,6 +475,7 @@ int distribute_part(int Nlin, int Nx, long ***ListOfPart,long **NPartPerCell){
 			count[lin_ijk]++;
 		}
 	}
+	NumPart = NumPart + NfromPrevSlice+NfromNextSlice;	
 
 	return 0;
 }

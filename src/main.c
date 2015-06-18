@@ -153,10 +153,11 @@ int main(int argc, char **argv) {
 	#endif
 
 	if (number_exclusion!=1){
-      		if(ThisTask == 0)
+      		if(ThisTask == 0){
         		fprintf(stderr,"ERROR: You must select one and only one exclusion criterion in Makefile.def\n");
         		fprintf(stderr,"Task %d, number of exclusion criterion:%d \n",ThisTask,number_exclusion);
-  			MPI_Finalize();		/* clean up & finalize MPI */
+		}
+  			FatalError(54471);		/* clean up & finalize MPI */
         		exit(0);
 	}
 
